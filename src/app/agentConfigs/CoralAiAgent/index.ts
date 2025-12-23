@@ -1,5 +1,5 @@
 import { RealtimeAgent } from '@openai/agents/realtime'
-import { getNextResponseFromSupervisor } from './supervisorAgent';
+import { getNextResponseFromSupervisor } from './supervisorAgent'; 
 
 export const chatAgent = new RealtimeAgent({
   name: 'chatAgent',
@@ -118,9 +118,8 @@ findNearestStore:
   ],
 });
 
-export const chatSupervisorScenario = [chatAgent];
+export const CoralAiAgent = [chatAgent];
 
-// Name of the company represented by this agent set. Used by guardrails
-export const chatSupervisorCompanyName = 'Coral telecom';
+export const CoralAiAgentCompanyName = 'Coral telecom';
 
-export default chatSupervisorScenario;
+export default CoralAiAgent;

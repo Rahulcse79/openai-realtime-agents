@@ -24,12 +24,12 @@ There are two main patterns demonstrated:
 - This is a Next.js typescript app. Install dependencies with `npm i`.
 - Add your `OPENAI_API_KEY` to your env. Either add it to your `.bash_profile` or equivalent, or copy `.env.sample` to `.env` and add it there.
 - Start the server with `npm run dev`
-- Open your browser to [http://localhost:3000](http://localhost:3000). It should default to the `chatSupervisor` Agent Config.
+- Open your browser to [http://localhost:3000](http://localhost:3000). It should default to the `CoralAiAgent` Agent Config.
 - You can change examples via the "Scenario" dropdown in the top right.
 
 # Agentic Pattern 1: Chat-Supervisor
 
-This is demonstrated in the [chatSupervisor](src/app/agentConfigs/chatSupervisor/index.ts) Agent Config. The chat agent uses the realtime model to converse with the user and handle basic tasks, like greeting the user, casual conversation, and collecting information, and a more intelligent, text-based supervisor model (e.g. `gpt-4.1`) is used extensively to handle tool calls and more challenging responses. You can control the decision boundary by "opting in" specific tasks to the chat agent as desired.
+This is demonstrated in the [CoralAiAgent](src/app/agentConfigs/CoralAiAgent/index.ts) Agent Config. The chat agent uses the realtime model to converse with the user and handle basic tasks, like greeting the user, casual conversation, and collecting information, and a more intelligent, text-based supervisor model (e.g. `gpt-4.1`) is used extensively to handle tool calls and more challenging responses. You can control the decision boundary by "opting in" specific tasks to the chat agent as desired.
 
 Video walkthrough: [https://x.com/noahmacca/status/1927014156152058075](https://x.com/noahmacca/status/1927014156152058075)
 
@@ -70,10 +70,10 @@ sequenceDiagram
   - However, more assistant responses will start with "Let me think", rather than responding immediately with the full response.
 
 ## Modifying for your own agent
-1. Update [supervisorAgent](src/app/agentConfigs/chatSupervisorDemo/supervisorAgent.ts).
+1. Update [supervisorAgent](src/app/agentConfigs/CoralAiAgentDemo/supervisorAgent.ts).
   - Add your existing text agent prompt and tools if you already have them. This should contain the "meat" of your voice agent logic and be very specific with what it should/shouldn't do and how exactly it should respond. Add this information below `==== Domain-Specific Agent Instructions ====`.
   - You should likely update this prompt to be more appropriate for voice, for example with instructions to be concise and avoiding long lists of items.
-2. Update [chatAgent](src/app/agentConfigs/chatSupervisor/index.ts).
+2. Update [chatAgent](src/app/agentConfigs/CoralAiAgent/index.ts).
   - Customize the chatAgent instructions with your own tone, greeting, etc.
   - Add your tool definitions to `chatAgentInstructions`. We recommend a brief yaml description rather than json to ensure the model doesn't get confused and try calling the tool directly.
   - You can modify the decision boundary by adding new items to the `# Allow List of Permitted Actions` section.

@@ -1,7 +1,6 @@
 import { simpleHandoffScenario } from './simpleHandoff';
 import { customerServiceRetailScenario } from './customerServiceRetail';
-import { chatSupervisorScenario } from './chatSupervisor';
-import { internalIvrsScenario } from './internalIvrs';
+import { CoralAiAgent } from './CoralAiAgent';
 
 import type { RealtimeAgent } from '@openai/agents/realtime';
 
@@ -9,8 +8,7 @@ import type { RealtimeAgent } from '@openai/agents/realtime';
 export const allAgentSets: Record<string, RealtimeAgent[]> = {
   simpleHandoff: simpleHandoffScenario,
   customerServiceRetail: customerServiceRetailScenario,
-  chatSupervisor: chatSupervisorScenario,
-  internalIvrs: internalIvrsScenario,
+  CoralAiAgent: CoralAiAgent,
 };
 
-export const defaultAgentSetKey = 'chatSupervisor';
+export const defaultAgentSetKey = 'CoralAiAgent';

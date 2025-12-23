@@ -253,7 +253,7 @@ async function handleToolCalls(
   }
 }
 
-export const getNextResponseFromSupervisor = tool({
+export const getNextResponseFromSupervisor = tool({ 
   name: 'getNextResponseFromSupervisor',
   description:
     'Determines the next response whenever the agent faces a non-trivial decision, produced by a highly intelligent supervisor agent. Returns a message describing what to do next.',
