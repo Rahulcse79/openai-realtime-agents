@@ -1,11 +1,6 @@
 import { RealtimeItem, tool } from '@openai/agents/realtime';
 
-
-import {
-  exampleAccountInfo,
-  examplePolicyDocs,
-  exampleStoreLocations,
-} from './sampleData';
+import employeeData from './data.json';
 
 export const supervisorAgentInstructions = `You are an expert customer service supervisor agent, tasked with providing real-time guidance to a more junior agent that's chatting directly with the customer. You will be given detailed response instructions, tools, and the full conversation history so far, and you should create a correct next message that the junior agent can read directly.
 
@@ -16,6 +11,31 @@ export const supervisorAgentInstructions = `You are an expert customer service s
   
 ==== Domain-Specific Agent Instructions ====
 You are a helpful customer service agent working for Coral telecom, helping a user efficiently fulfill their request while adhering closely to provided guidelines.
+
+## Language Rules (CRITICAL — follow exactly)
+You are a multilingual IVRS voice assistant.
+
+### 1) Choose a single conversation language
+- Determine the caller's language from the FIRST clear, full sentence the caller says.
+- Set that as the **Conversation Language**.
+
+### 2) Persist it across the whole conversation
+- For ALL of your replies, use ONLY the Conversation Language.
+- Do NOT switch languages just because the caller says a single word in another language.
+- Do NOT mix languages in a single response.
+
+### 3) Switch languages only on an explicit/clear user switch
+Switch the Conversation Language ONLY if the caller does one of these:
+- Speaks a full sentence in a different language, OR
+- Explicitly requests a different language (e.g., "Speak Hindi", "Punjabi please"), OR
+- Repeatedly continues in a different language across multiple turns.
+
+### 4) Short / ambiguous user turns
+- If the caller says very short/ambiguous terms like "yes", "no", "ok", names, phone numbers, OTPs, account numbers, or addresses, DO NOT treat that as a language switch.
+- Continue using the current Conversation Language.
+
+### 5) Translation
+- Do NOT translate unless the caller explicitly asks for translation.
 
 # Instructions
 - Always greet the user at the start of the conversation with "Hi, you've reached Coral telecom, how can I help you?"
@@ -35,6 +55,10 @@ You are a helpful customer service agent working for Coral telecom, helping a us
 - Do not offer or attempt to fulfill requests for capabilities or services not explicitly supported by your tools or provided information.
 - Only offer to provide more information if you know there is more information available to provide, based on the tools and context you have.
 - When possible, please provide specific numbers or dollar amounts to substantiate your answer.
+
+## Escalation Rule (Required)
+- If the caller requests help, requests a human, or the conversation is ending, include this exact question at the end of your message:
+  "Do you want me to transfer this call to a support agent?"
 
 # Sample Phrases
 ## Deflecting a Prohibited Topic
@@ -92,6 +116,24 @@ I'm sorry, but I'm not able to process payments over the phone. Would you like m
 `;
 
 export const supervisorAgentTools = [
+  {
+    type: "function",
+    name: "getEmployeeProfile",
+    description:
+      "Tool to retrieve the employee profile from the local employee dataset (data.json).",
+    parameters: {
+      type: "object",
+      properties: {
+        employeeNumber: {
+          type: "string",
+          description:
+            "Employee number (e.g., CT1001). If omitted, return the default employee profile.",
+        },
+      },
+      required: [],
+      additionalProperties: false,
+    },
+  },
   {
     type: "function",
     name: "lookupPolicyDocument",
@@ -168,12 +210,8 @@ async function fetchResponsesMessage(body: any) {
 
 function getToolResponse(fName: string) {
   switch (fName) {
-    case "getUserAccountInfo":
-      return exampleAccountInfo;
-    case "lookupPolicyDocument":
-      return examplePolicyDocs;
-    case "findNearestStore":
-      return exampleStoreLocations;
+    case "getEmployeeProfile":
+      return employeeData;
     default:
       return { result: true };
   }

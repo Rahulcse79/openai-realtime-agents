@@ -1,0 +1,31 @@
+{
+  "employeeId": 1,
+  "employeeNumber": "CT1001",
+  "name": "Rahul Singh",
+  "department": "R&D Department",
+  "team": "AI Team",
+  "position": "Software Engineer",
+  "manager": {
+    "name": "Rishi Saini",
+    "designation": "AI Team Manager",
+    "department": "R&D Department"
+  },
+  "currentTask": "AI based IVRS development",
+  "skills": [
+    "Artificial Intelligence",
+    "Speech-to-Speech Systems",
+    "WebRTC",
+    "Node.js",
+    "Spring Boot",
+    "Real-time WebSocket Communication"
+  ],
+  "workLocation": "Coral Telecom – Head Office",
+  "employmentStatus": "Active",
+  "accessLevel": "Employee",
+  "ivrsPermissions": {
+    "createTicket": true,
+    "viewTickets": true,
+    "viewTasks": true,
+    "callManager": true
+  }
+}

@@ -32,7 +32,7 @@ import { simpleHandoffScenario } from "@/app/agentConfigs/simpleHandoff";
 const sdkScenarioMap: Record<string, RealtimeAgent[]> = {
   simpleHandoff: simpleHandoffScenario,
   customerServiceRetail: customerServiceRetailScenario,
-  CoralAiAgent: CoralAiAgent
+  CoralAiAgent: CoralAiAgent,
 };
 
 import useAudioDownload from "./hooks/useAudioDownload";
