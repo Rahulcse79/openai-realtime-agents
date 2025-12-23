@@ -1,5 +1,10 @@
 {
   "name": "realtime-examples",
+  "author": {
+    "name": "Rahul Singh",
+    "email": "rahul.singh.cse79@gmail.com",
+    "organization": "Coral Telecom"
+  },
   "version": "0.1.0",
   "private": true,
   "scripts": {
