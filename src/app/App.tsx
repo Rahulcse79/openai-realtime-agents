@@ -27,14 +27,12 @@ import { CoralAiAgent } from "@/app/agentConfigs/CoralAiAgent";
 import { customerServiceRetailCompanyName } from "@/app/agentConfigs/customerServiceRetail";
 import { CoralAiAgentCompanyName } from "@/app/agentConfigs/CoralAiAgent";
 import { simpleHandoffScenario } from "@/app/agentConfigs/simpleHandoff";
-import { CoralTelecomIVRSScenario, CoralTelecomCompanyName } from "@/app/agentConfigs/CoralTelecomIVRS";
 
 // Map used by connect logic for scenarios defined via the SDK.
 const sdkScenarioMap: Record<string, RealtimeAgent[]> = {
   simpleHandoff: simpleHandoffScenario,
   customerServiceRetail: customerServiceRetailScenario,
-  CoralAiAgent: CoralAiAgent,
-  CoralTelecomIVRS: CoralTelecomIVRSScenario,
+  CoralAiAgent: CoralAiAgent
 };
 
 import useAudioDownload from "./hooks/useAudioDownload";
@@ -201,9 +199,7 @@ function App() {
 
         const companyName = agentSetKey === 'customerServiceRetail'
           ? customerServiceRetailCompanyName
-          : agentSetKey === 'CoralTelecomIVRS'
-            ? CoralTelecomCompanyName
-            : CoralAiAgentCompanyName;
+          : CoralAiAgentCompanyName;
         const guardrail = createModerationGuardrail(companyName);
 
         await connect({
