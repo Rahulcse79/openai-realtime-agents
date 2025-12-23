@@ -41,23 +41,23 @@ Video walkthrough: [https://x.com/noahmacca/status/1927014156152058075](https://
 ```mermaid
 sequenceDiagram
     participant User
-    participant ChatAgent as Chat Agent<br/>(gpt-4o-realtime-mini)
+    participant coralAgent as Chat Agent<br/>(gpt-4o-realtime-mini)
     participant Supervisor as Supervisor Agent<br/>(gpt-4.1)
     participant Tool as Tool
 
     alt Basic chat or info collection
-        User->>ChatAgent: User message
-        ChatAgent->>User: Responds directly
+        User->>coralAgent: User message
+        coralAgent->>User: Responds directly
     else Requires higher intelligence and/or tool call
-        User->>ChatAgent: User message
-        ChatAgent->>User: "Let me think"
-        ChatAgent->>Supervisor: Forwards message/context
+        User->>coralAgent: User message
+        coralAgent->>User: "Let me think"
+        coralAgent->>Supervisor: Forwards message/context
         alt Tool call needed
             Supervisor->>Tool: Calls tool
             Tool->>Supervisor: Returns result
         end
-        Supervisor->>ChatAgent: Returns response
-        ChatAgent->>User: Delivers response
+        Supervisor->>coralAgent: Returns response
+        coralAgent->>User: Delivers response
     end
 ```
 
@@ -73,11 +73,11 @@ sequenceDiagram
 1. Update [supervisorAgent](src/app/agentConfigs/CoralAiAgentDemo/supervisorAgent.ts).
   - Add your existing text agent prompt and tools if you already have them. This should contain the "meat" of your voice agent logic and be very specific with what it should/shouldn't do and how exactly it should respond. Add this information below `==== Domain-Specific Agent Instructions ====`.
   - You should likely update this prompt to be more appropriate for voice, for example with instructions to be concise and avoiding long lists of items.
-2. Update [chatAgent](src/app/agentConfigs/CoralAiAgent/index.ts).
-  - Customize the chatAgent instructions with your own tone, greeting, etc.
-  - Add your tool definitions to `chatAgentInstructions`. We recommend a brief yaml description rather than json to ensure the model doesn't get confused and try calling the tool directly.
+2. Update [coralAgent](src/app/agentConfigs/CoralAiAgent/index.ts).
+  - Customize the coralAgent instructions with your own tone, greeting, etc.
+  - Add your tool definitions to `coralAgentInstructions`. We recommend a brief yaml description rather than json to ensure the model doesn't get confused and try calling the tool directly.
   - You can modify the decision boundary by adding new items to the `# Allow List of Permitted Actions` section.
-3. To reduce cost, try using `gpt-4o-mini-realtime` for the chatAgent and/or `gpt-4.1-mini` for the supervisor model. To maximize intelligence on particularly difficult or high-stakes tasks, consider trading off latency and adding chain-of-thought to your supervisor prompt, or using an additional reasoning model-based supervisor that uses `o4-mini`.
+3. To reduce cost, try using `gpt-4o-mini-realtime` for the coralAgent and/or `gpt-4.1-mini` for the supervisor model. To maximize intelligence on particularly difficult or high-stakes tasks, consider trading off latency and adding chain-of-thought to your supervisor prompt, or using an additional reasoning model-based supervisor that uses `o4-mini`.
 
 # Agentic Pattern 2: Sequential Handoffs
 
