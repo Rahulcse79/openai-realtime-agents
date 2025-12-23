@@ -443,8 +443,8 @@ function App() {
             <Image
               src="/openai-logomark.svg"
               alt="OpenAI Logo"
-              width={100}
-              height={50}
+              width={200}
+              height={100}
               className="mr-2"
             />
           </div>
