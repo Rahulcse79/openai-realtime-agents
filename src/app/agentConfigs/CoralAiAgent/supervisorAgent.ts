@@ -10,7 +10,16 @@ export const supervisorAgentInstructions = `You are an expert customer service s
 - Your message will be read verbatim by the junior agent, so feel free to use it like you would talk directly to the user
   
 ==== Domain-Specific Agent Instructions ====
-You are a helpful customer service agent working for Coral telecom, helping a user efficiently fulfill their request while adhering closely to provided guidelines.
+You are a helpful internal IVRS supervisor agent working for Coral Telecom, helping an EMPLOYEE efficiently fulfill their request while adhering closely to provided guidelines.
+
+## Primary Use Case: Employee Ticket Creation (CRITICAL)
+When the employee wants to create a ticket (or you infer that intent), follow this flow and keep it voice-friendly:
+1) Ask for ticket subject (short)
+2) Ask for issue description (detail)
+3) Ask which team/department should receive it
+4) Ask for optional CC list (names or employee numbers) and confirm if none
+5) Read back a short summary and ask for confirmation
+6) After confirmation, call createEmployeeTicket and then confirm success with the ticket reference
 
 ## Language Rules (CRITICAL — follow exactly)
 You are a multilingual IVRS voice assistant.
@@ -58,7 +67,7 @@ Switch the Conversation Language ONLY if the caller does one of these:
 
 ## Escalation Rule (Required)
 - If the caller requests help, requests a human, or the conversation is ending, include this exact question at the end of your message:
-  "Do you want me to transfer this call to a support agent?"
+  "If you need more help, I can transfer this call to an agent."
 
 # Sample Phrases
 ## Deflecting a Prohibited Topic
@@ -116,6 +125,42 @@ I'm sorry, but I'm not able to process payments over the phone. Would you like m
 `;
 
 export const supervisorAgentTools = [
+  {
+    type: "function",
+    name: "createEmployeeTicket",
+    description:
+      "Create an internal Coral Telecom ticket for an employee. Returns a unique ticket reference and the stored ticket payload.",
+    parameters: {
+      type: "object",
+      properties: {
+        subject: {
+          type: "string",
+          description: "Short ticket subject/title.",
+        },
+        description: {
+          type: "string",
+          description: "Detailed issue description, captured from the employee.",
+        },
+        recipientTeam: {
+          type: "string",
+          description: "Team/department the ticket should be assigned to.",
+        },
+        cc: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Optional CC list (names or employee numbers). Use an empty array if none.",
+        },
+        requesterEmployeeNumber: {
+          type: "string",
+          description:
+            "Employee number of the requester (e.g., CT1001) if known; otherwise ask the employee.",
+        },
+      },
+      required: ["subject", "description", "recipientTeam"],
+      additionalProperties: false,
+    },
+  },
   {
     type: "function",
     name: "getEmployeeProfile",
@@ -189,6 +234,12 @@ export const supervisorAgentTools = [
   },
 ];
 
+function generateTicketRef() {
+  const ts = Date.now().toString(36).toUpperCase();
+  const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `CT-TKT-${ts}-${rand}`;
+}
+
 async function fetchResponsesMessage(body: any) {
   const response = await fetch('/api/responses', {
     method: 'POST',
@@ -212,6 +263,20 @@ function getToolResponse(fName: string) {
   switch (fName) {
     case "getEmployeeProfile":
       return employeeData;
+    case "createEmployeeTicket": {
+      // This is a demo/local stub. We generate a reference and echo the data.
+      return {
+        ticketRef: generateTicketRef(),
+        status: 'CREATED',
+        createdAt: new Date().toISOString(),
+        requester: {
+          employeeNumber: (employeeData as any)?.employeeNumber,
+          name: (employeeData as any)?.name,
+          department: (employeeData as any)?.department,
+          team: (employeeData as any)?.team,
+        },
+      };
+    }
     default:
       return { result: true };
   }
