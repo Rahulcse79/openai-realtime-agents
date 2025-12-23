@@ -18,7 +18,7 @@ import type { RealtimeAgent } from '@openai/agents/realtime';
 import { useTranscript } from "@/app/contexts/TranscriptContext";
 import { useEvent } from "@/app/contexts/EventContext";
 import { useRealtimeSession } from "./hooks/useRealtimeSession";
-import { createModerationGuardrail } from "@/app/agentConfigs/guardrails";
+import { createLanguageLockGuardrail, createModerationGuardrail } from "@/app/agentConfigs/guardrails";
 
 // Agent configs
 import { allAgentSets, defaultAgentSetKey } from "@/app/agentConfigs";
@@ -200,13 +200,14 @@ function App() {
         const companyName = agentSetKey === 'customerServiceRetail'
           ? customerServiceRetailCompanyName
           : CoralAiAgentCompanyName;
-        const guardrail = createModerationGuardrail(companyName);
+        const moderationGuardrail = createModerationGuardrail(companyName);
+        const languageGuardrail = createLanguageLockGuardrail();
 
         await connect({
           getEphemeralKey: async () => EPHEMERAL_KEY,
           initialAgents: reorderedAgents,
           audioElement: sdkAudioElement,
-          outputGuardrails: [guardrail],
+          outputGuardrails: [moderationGuardrail, languageGuardrail],
           extraContext: {
             addTranscriptBreadcrumb,
           },
