@@ -21,7 +21,7 @@ import { CoralAiAgent } from "@/app/agentConfigs/CoralAiAgent";
 import { CoralAiAgentCompanyName } from "@/app/agentConfigs/CoralAiAgent";
 
 const sdkScenarioMap: Record<string, RealtimeAgent[]> = {
-  CoralAiAgent: CoralAiAgent,
+  CoralAiScenario: CoralAiAgent,
 };
 
 import useAudioDownload from "./hooks/useAudioDownload";
@@ -403,7 +403,7 @@ function App() {
             <Image
               src="/openai-logomark.svg"
               alt="OpenAI Logo"
-              width={200}
+              width={230}
               height={100}
               className="mr-2"
             />

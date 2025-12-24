@@ -1,8 +1,8 @@
 import { RealtimeAgent } from '@openai/agents/realtime'
 import { getNextResponseFromCoralAiAgent } from './supervisorAgent'; 
 
-export const coralAgent = new RealtimeAgent({
-  name: 'coralAgent',
+export const coralAiAgent = new RealtimeAgent({
+  name: 'coralAiAgent',
   voice: 'sage',
   instructions: `
 ## Language Policy (IMPORTANT)
@@ -141,7 +141,7 @@ findNearestStore:
   ],
 });
 
-export const CoralAiAgent = [coralAgent];
+export const CoralAiAgent = [coralAiAgent];
 
 export const CoralAiAgentCompanyName = 'Coral telecom';
 
