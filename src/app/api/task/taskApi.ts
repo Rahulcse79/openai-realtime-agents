@@ -54,11 +54,12 @@ export type TaskModel = TaskCreateModel & {
 };
 
 function getAuthHeader() {
-  const token = process.env.TASK_AUTH_TOKEN;
+  // const token = process.env.TASK_AUTH_TOKEN;
+  const token = "Opaque 00aa5095-4fa4-4816-8381-5792d1dbe24f";
   if (!token)
     throw new Error("TASK_AUTH_TOKEN not defined in environment variables");
   return {
-    Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}`,
+    Authorization: `${token}`,
   };
 }
 
@@ -90,7 +91,7 @@ async function apiFetch<T>(
   return (await res.text()) as unknown as T;
 }
 
-const BASE = process.env.TASK_BACKEND_BASE_URL ?? "http://localhost/services/api/v2";
+const BASE = process.env.TASK_BACKEND_BASE_URL ?? "http://localhost:8996/app/v2";
 
 export const taskApi = {
   listAll: () =>
