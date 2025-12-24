@@ -1,6 +1,6 @@
-import { RealtimeItem, tool } from '@openai/agents/realtime';
+import { RealtimeItem, tool } from "@openai/agents/realtime";
 
-import employeeData from '../../Data/employeeData.json';
+import employeeData from "../../Data/employeeData.json";
 
 export const supervisorAgentInstructions = `You are an expert customer service supervisor agent, tasked with providing real-time guidance to a more junior agent that's chatting directly with the customer. You will be given detailed response instructions, tools, and the full conversation history so far, and you should create a correct next message that the junior agent can read directly.
 
@@ -139,7 +139,8 @@ export const supervisorAgentTools = [
         },
         description: {
           type: "string",
-          description: "Detailed issue description, captured from the employee.",
+          description:
+            "Detailed issue description, captured from the employee.",
         },
         recipientTeam: {
           type: "string",
@@ -241,135 +242,152 @@ function generateTicketRef() {
 }
 
 async function fetchResponsesMessage(body: any) {
-  const response = await fetch('/api/responses', {
-    method: 'POST',
+  const response = await fetch("/api/responses", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
-    // Preserve the previous behaviour of forcing sequential tool calls.
+
     body: JSON.stringify({ ...body, parallel_tool_calls: false }),
   });
 
   if (!response.ok) {
-    console.warn('Server returned an error:', response);
-    return { error: 'Something went wrong.' };
+    console.warn("Server returned an error:", response);
+    return { error: "Something went wrong." };
   }
 
   const completion = await response.json();
   return completion;
 }
 
-function getToolResponse(fName: string) {
+async function sendTicketMail(args: any, ticket: any) {
+  if (!args?.cc || args.cc.length === 0) return;
+
+  try {
+    await fetch("/api/sendTicketMail", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to: args.cc,
+        username: ticket.requester.name,
+        department: ticket.requester.department,
+        ticketNo: ticket.ticketRef,
+        issueTitle: args.subject,
+        issueDetails: args.description,
+      }),
+    });
+
+    console.log('[MAIL] CC notification sent:', args.cc.join(', '));
+  } catch (err) {
+    console.error('[MAIL] Failed to send CC mail:', err);
+  }
+}
+
+function getToolResponse(fName: string, args: any) {
   switch (fName) {
     case "getEmployeeProfile":
       return employeeData;
     case "createEmployeeTicket": {
-      // This is a demo/local stub. We generate a reference and echo the data.
-      return {
+      const ticket = {
         ticketRef: generateTicketRef(),
-        status: 'CREATED',
+        status: "CREATED",
         createdAt: new Date().toISOString(),
         requester: {
-          employeeNumber: (employeeData as any)?.employeeNumber,
-          name: (employeeData as any)?.name,
-          department: (employeeData as any)?.department,
-          team: (employeeData as any)?.team,
+          employeeNumber: employeeData.employeeNumber,
+          name: employeeData.name,
+          department: employeeData.department,
+          team: employeeData.team,
         },
       };
+      sendTicketMail(args, ticket);
+      return ticket;
     }
     default:
       return { result: true };
   }
 }
 
-/**
- * Iteratively handles function calls returned by the Responses API until the
- * supervisor produces a final textual answer. Returns that answer as a string.
- */
 async function handleToolCalls(
   body: any,
   response: any,
-  addBreadcrumb?: (title: string, data?: any) => void,
+  addBreadcrumb?: (title: string, data?: any) => void
 ) {
   let currentResponse = response;
 
   while (true) {
     if (currentResponse?.error) {
-      return { error: 'Something went wrong.' } as any;
+      return { error: "Something went wrong." } as any;
     }
 
     const outputItems: any[] = currentResponse.output ?? [];
-
-    // Gather all function calls in the output.
-    const functionCalls = outputItems.filter((item) => item.type === 'function_call');
+    const functionCalls = outputItems.filter(
+      (item) => item.type === "function_call"
+    );
 
     if (functionCalls.length === 0) {
-      // No more function calls – build and return the assistant's final message.
-      const assistantMessages = outputItems.filter((item) => item.type === 'message');
+      const assistantMessages = outputItems.filter(
+        (item) => item.type === "message"
+      );
 
       const finalText = assistantMessages
         .map((msg: any) => {
           const contentArr = msg.content ?? [];
           return contentArr
-            .filter((c: any) => c.type === 'output_text')
+            .filter((c: any) => c.type === "output_text")
             .map((c: any) => c.text)
-            .join('');
+            .join("");
         })
-        .join('\n');
+        .join("\n");
 
       return finalText;
     }
-
-    // For each function call returned by the supervisor model, execute it locally and append its
-    // output to the request body as a `function_call_output` item.
     for (const toolCall of functionCalls) {
       const fName = toolCall.name;
-      const args = JSON.parse(toolCall.arguments || '{}');
-      const toolRes = getToolResponse(fName);
-
-      // Since we're using a local function, we don't need to add our own breadcrumbs
+      const args = JSON.parse(toolCall.arguments || "{}");
+      const toolRes = getToolResponse(fName, args);
       if (addBreadcrumb) {
         addBreadcrumb(`[supervisorAgent] function call: ${fName}`, args);
       }
       if (addBreadcrumb) {
-        addBreadcrumb(`[supervisorAgent] function call result: ${fName}`, toolRes);
+        addBreadcrumb(
+          `[supervisorAgent] function call result: ${fName}`,
+          toolRes
+        );
       }
-
-      // Add function call and result to the request body to send back to realtime
       body.input.push(
         {
-          type: 'function_call',
+          type: "function_call",
           call_id: toolCall.call_id,
           name: toolCall.name,
           arguments: toolCall.arguments,
         },
         {
-          type: 'function_call_output',
+          type: "function_call_output",
           call_id: toolCall.call_id,
           output: JSON.stringify(toolRes),
-        },
+        }
       );
     }
-
-    // Make the follow-up request including the tool outputs.
     currentResponse = await fetchResponsesMessage(body);
   }
 }
 
-export const getNextResponseFromCoralAiAgent = tool({ 
-  name: 'getNextResponseFromCoralAiAgent',
+export const getNextResponseFromCoralAiAgent = tool({
+  name: "getNextResponseFromCoralAiAgent",
   description:
-    'Determines the next response whenever the agent faces a non-trivial decision, produced by a highly intelligent supervisor agent. Returns a message describing what to do next.',
+    "Determines the next response whenever the agent faces a non-trivial decision, produced by a highly intelligent supervisor agent. Returns a message describing what to do next.",
   parameters: {
-    type: 'object',
+    type: "object",
     properties: {
       relevantContextFromLastUserMessage: {
-        type: 'string',
+        type: "string",
         description:
-          'Key information from the user described in their most recent message. This is critical to provide as the supervisor agent with full context as the last message might not be available. Okay to omit if the user message didn\'t add any new information.',
+          "Key information from the user described in their most recent message. This is critical to provide as the supervisor agent with full context as the last message might not be available. Okay to omit if the user message didn't add any new information.",
       },
     },
-    required: ['relevantContextFromLastUserMessage'],
+    required: ["relevantContextFromLastUserMessage"],
     additionalProperties: false,
   },
   execute: async (input, details) => {
@@ -382,19 +400,19 @@ export const getNextResponseFromCoralAiAgent = tool({
       | undefined;
 
     const history: RealtimeItem[] = (details?.context as any)?.history ?? [];
-    const filteredLogs = history.filter((log) => log.type === 'message');
+    const filteredLogs = history.filter((log) => log.type === "message");
 
     const body: any = {
-      model: 'gpt-4.1',
+      model: "gpt-4.1",
       input: [
         {
-          type: 'message',
-          role: 'system',
+          type: "message",
+          role: "system",
           content: supervisorAgentInstructions,
         },
         {
-          type: 'message',
-          role: 'user',
+          type: "message",
+          role: "user",
           content: `==== Conversation History ====
           ${JSON.stringify(filteredLogs, null, 2)}
           
@@ -408,15 +426,14 @@ export const getNextResponseFromCoralAiAgent = tool({
 
     const response = await fetchResponsesMessage(body);
     if (response.error) {
-      return { error: 'Something went wrong.' };
+      return { error: "Something went wrong." };
     }
 
     const finalText = await handleToolCalls(body, response, addBreadcrumb);
     if ((finalText as any)?.error) {
-      return { error: 'Something went wrong.' };
+      return { error: "Something went wrong." };
     }
 
     return { nextResponse: finalText as string };
   },
 });
-  
