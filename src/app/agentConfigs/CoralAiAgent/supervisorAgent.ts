@@ -146,11 +146,11 @@ export const supervisorAgentTools = [
           type: "string",
           description: "Team/department the ticket should be assigned to.",
         },
-        cc: {
+        sendTo: {
           type: "array",
           items: { type: "string" },
           description:
-            "Optional CC list (names or employee numbers). Use an empty array if none.",
+            "Optional send to list (names or employee numbers). Use an empty array if none.",
         },
         requesterEmployeeNumber: {
           type: "string",
@@ -260,17 +260,50 @@ async function fetchResponsesMessage(body: any) {
   return completion;
 }
 
+async function createTaskTicket(args: any, ticket: any) {
+  try {
+    const taskPayload = {
+      tasksName: `${ticket.requester.name} Department : ${args.recipientTeam} - ${args.subject}`,
+      taskDescription: `Created Ticket Ref: ${ticket.ticketRef}`,
+      taskType: "General",
+      taskPriority: "Normal",
+      currentStats: "New",
+    };
+    const token = "Opaque 00aa5095-4fa4-4816-8381-5792d1dbe24f";
+    const response = await fetch("http://localhost:8996/app/v2/task/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token,
+      },
+      body: JSON.stringify(taskPayload),
+    });
+
+    if (!response.ok) {
+      console.error("[TASK] Failed to create task:", response.status);
+      return null;
+    }
+
+    const result = await response.json();
+    console.log("[TASK] Task created successfully:", result);
+    return result;
+  } catch (err) {
+    console.error("[TASK] Failed to create task:", err);
+    return null;
+  }
+}
+
 async function sendTicketMail(args: any, ticket: any) {
-  if (!args?.cc || args.cc.length === 0) return;
+  if (!args?.sendTo || args.sendTo.length === 0) return;
 
   try {
-    await fetch("/api/sendTicketMail", {
+    await fetch("/api/mailGateway", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        to: args.cc,
+        to: args.sendTo,
         username: ticket.requester.name,
         department: ticket.requester.department,
         ticketNo: ticket.ticketRef,
@@ -279,9 +312,9 @@ async function sendTicketMail(args: any, ticket: any) {
       }),
     });
 
-    console.log('[MAIL] CC notification sent:', args.cc.join(', '));
+    console.log("[MAIL] Send to notification sent:", args.sendTo.join(", "));
   } catch (err) {
-    console.error('[MAIL] Failed to send CC mail:', err);
+    console.error("[MAIL] Failed to send send to mail:", err);
   }
 }
 
@@ -301,6 +334,8 @@ function getToolResponse(fName: string, args: any) {
           team: employeeData.team,
         },
       };
+      // Create task and send mail asynchronously
+      createTaskTicket(args, ticket);
       sendTicketMail(args, ticket);
       return ticket;
     }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const DEFAULT_BACKEND_ORIGIN =
-  process.env.TASK_BACKEND_BASE_URL ?? "http://localhost/services/api/v2";
+  process.env.TASK_BACKEND_BASE_URL ?? "http://localhost:8996/app/v2";
 
 function getAuthHeader(req: NextRequest): string {
   const incoming = req.headers.get("authorization");
@@ -9,12 +9,13 @@ function getAuthHeader(req: NextRequest): string {
     return incoming;
   }
 
-  const token = process.env.TASK_AUTH_TOKEN;
+  // const token = process.env.TASK_AUTH_TOKEN;
+  const token = "Opaque 00aa5095-4fa4-4816-8381-5792d1dbe24f";
   if (!token) {
     throw new Error("TASK_AUTH_TOKEN is not defined in environment variables");
   }
 
-  return token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+  return `${token}`;
 }
 
 async function proxy(req: NextRequest) {
@@ -25,7 +26,7 @@ async function proxy(req: NextRequest) {
   const target = new URL(targetUrl);
 
   const headers = new Headers();
-  headers.set("Authorization", getAuthHeader(req));
+  // headers.set("Authorization", getAuthHeader(req));
 
   const ct = req.headers.get("content-type");
   if (ct) headers.set("content-type", ct);
