@@ -90,7 +90,7 @@ async function apiFetch<T>(
   return (await res.text()) as unknown as T;
 }
 
-const BASE = process.env.TASK_BACKEND_BASE_URL ?? "http://localhost";
+const BASE = process.env.TASK_BACKEND_BASE_URL ?? "http://localhost/services/api/v2";
 
 export const taskApi = {
   listAll: () =>
