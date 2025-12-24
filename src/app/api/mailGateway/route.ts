@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const { SendMail } = await import("../mailGateway/mailGateway");
+    const { SendMail } = await import("./mailGateway");
 
     const res = await SendMail(body.to, {
       subject: body.subject,
