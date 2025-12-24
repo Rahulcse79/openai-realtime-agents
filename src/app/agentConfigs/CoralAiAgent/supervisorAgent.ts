@@ -1,6 +1,6 @@
 import { RealtimeItem, tool } from '@openai/agents/realtime';
 
-import employeeData from './data.json';
+import employeeData from '../../Data/employeeData.json';
 
 export const supervisorAgentInstructions = `You are an expert customer service supervisor agent, tasked with providing real-time guidance to a more junior agent that's chatting directly with the customer. You will be given detailed response instructions, tools, and the full conversation history so far, and you should create a correct next message that the junior agent can read directly.
 

@@ -1,19 +1,13 @@
 import { z } from "zod";
 
-// Define the allowed moderation categories only once
 export const MODERATION_CATEGORIES = [
   "OFFENSIVE",
   "OFF_BRAND",
   "VIOLENCE",
   "NONE",
 ] as const;
-
-// Derive the union type for ModerationCategory from the array
 export type ModerationCategory = (typeof MODERATION_CATEGORIES)[number];
-
-// Create a Zod enum based on the same array
 export const ModerationCategoryZod = z.enum([...MODERATION_CATEGORIES]);
-
 export type SessionStatus = "DISCONNECTED" | "CONNECTING" | "CONNECTED";
 
 export interface ToolParameterProperty {
@@ -43,14 +37,17 @@ export interface Tool {
 
 export interface AgentConfig {
   name: string;
-  publicDescription: string; // gives context to agent transfer tool
+  publicDescription: string;
   instructions: string;
   tools: Tool[];
   toolLogic?: Record<
     string,
-    (args: any, transcriptLogsFiltered: TranscriptItem[], addTranscriptBreadcrumb?: (title: string, data?: any) => void) => Promise<any> | any
+    (
+      args: any,
+      transcriptLogsFiltered: TranscriptItem[],
+      addTranscriptBreadcrumb?: (title: string, data?: any) => void
+    ) => Promise<any> | any
   >;
-  // addTranscriptBreadcrumb is a param in case we want to add additional breadcrumbs, e.g. for nested tool calls from a supervisor agent.
   downstreamAgents?:
     | AgentConfig[]
     | { name: string; publicDescription: string }[];
@@ -60,7 +57,7 @@ export type AllAgentConfigsType = Record<string, AgentConfig[]>;
 
 export interface GuardrailResultType {
   status: "IN_PROGRESS" | "DONE";
-  testText?: string; 
+  testText?: string;
   category?: ModerationCategory;
   rationale?: string;
 }
@@ -135,10 +132,9 @@ export interface LoggedEvent {
   expanded: boolean;
   timestamp: string;
   eventName: string;
-  eventData: Record<string, any>; // can have arbitrary objects logged
+  eventData: Record<string, any>;
 }
 
-// Update the GuardrailOutputZod schema to use the shared ModerationCategoryZod
 export const GuardrailOutputZod = z.object({
   moderationRationale: z.string(),
   moderationCategory: ModerationCategoryZod,

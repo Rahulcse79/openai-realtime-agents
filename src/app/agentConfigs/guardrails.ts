@@ -35,8 +35,7 @@ export async function runGuardrailClassifier(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      // Use a more capable, up-to-date text model for classification.
-      model: 'gpt-4.1-mini',
+      model: 'gpt-4o-mini', // gpt-4.1-mini',
       input: messages,
       text: {
         format: zodTextFormat(GuardrailOutputZod, 'output_format'),
@@ -192,7 +191,7 @@ export function createLanguageLockGuardrail(options?: {
             reason: mismatch ? 'language_mismatch' : 'language_match_or_low_confidence',
           },
         };
-      } catch (err) {
+      } catch {
         return {
           tripwireTriggered: false,
           outputInfo: { error: 'language_guardrail_failed' },

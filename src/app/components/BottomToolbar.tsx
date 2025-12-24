@@ -11,6 +11,8 @@ interface BottomToolbarProps {
   handleTalkButtonUp: () => void;
   isEventsPaneExpanded: boolean;
   setIsEventsPaneExpanded: (val: boolean) => void;
+  setIsTasksPaneOpen: (val: boolean) => void;
+  isTasksPaneOpen: boolean;
   isAudioPlaybackEnabled: boolean;
   setIsAudioPlaybackEnabled: (val: boolean) => void;
   codec: string;
@@ -27,6 +29,8 @@ function BottomToolbar({
   handleTalkButtonUp,
   isEventsPaneExpanded,
   setIsEventsPaneExpanded,
+  isTasksPaneOpen,
+  setIsTasksPaneOpen,
   isAudioPlaybackEnabled,
   setIsAudioPlaybackEnabled,
   codec,
@@ -130,15 +134,20 @@ function BottomToolbar({
       </div>
 
       <div className="flex flex-row items-center gap-2">
+        <input
+          id="tasks"
+          type="checkbox"
+          checked={isTasksPaneOpen}
+          onChange={(e) => setIsTasksPaneOpen(e.target.checked)}
+          className="w-4 h-4"
+        />
+        <label htmlFor="tasks" className="flex items-center cursor-pointer">
+          Tasks
+        </label>
+      </div>
+
+      <div className="flex flex-row items-center gap-2">
         <div>Codec:</div>
-        {/*
-          Codec selector – Lets you force the WebRTC track to use 8 kHz 
-          PCMU/PCMA so you can preview how the agent will sound 
-          (and how ASR/VAD will perform) when accessed via a 
-          phone network.  Selecting a codec reloads the page with ?codec=...
-          which our App-level logic picks up and applies via a WebRTC monkey
-          patch (see codecPatch.ts).
-        */}
         <select
           id="codec-select"
           value={codec}
