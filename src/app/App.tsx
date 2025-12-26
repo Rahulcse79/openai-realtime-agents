@@ -348,11 +348,7 @@ function App() {
     localStorage.setItem("tasksOpen", isTasksPaneOpen.toString());
   }, [isTasksPaneOpen]);
 
-  useEffect(() => {
-    if (isEventsPaneExpanded && isTasksPaneOpen) {
-      setIsTasksPaneOpen(false);
-    }
-  }, [isEventsPaneExpanded, isTasksPaneOpen]);
+
 
   useEffect(() => {
     localStorage.setItem(
@@ -495,34 +491,73 @@ function App() {
         </div>
       </div>
 
-      <div className="flex flex-1 gap-3 p-3 overflow-hidden">
-        <div className="flex-1 overflow-auto rounded-2xl bg-white shadow-2xl border border-gray-200">
-          <HumanSensorDashboard />
-        </div>
-
-        <div className="flex w-[520px] shrink-0 flex-col gap-3">
-          <div className="rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-xl border border-gray-200 overflow-hidden">
-            <Transcript
-              userText={userText}
-              setUserText={setUserText}
-              onSendMessage={handleSendTextMessage}
-              downloadRecording={downloadRecording}
-              canSend={sessionStatus === "CONNECTED"}
-            />
-          </div>
-
-          <div className="rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-xl border border-gray-200 overflow-hidden">
-            <Events isExpanded={isEventsPaneExpanded} />
-          </div>
-
-          {isTasksPaneOpen && !isEventsPaneExpanded ? (
-            <div className="overflow-auto rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-xl border border-gray-200 p-4">
-              <TaskApiDemo />
+      {/* Main scrollable container */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col gap-4 p-4">
+          {/* Top Section: Dashboard and Transcript - Full Height */}
+          <div className="flex gap-4 h-[calc(100vh-180px)]">
+            {/* Dashboard - Left Side */}
+            <div className="flex-1 overflow-auto rounded-3xl bg-gradient-to-br from-white via-gray-50 to-indigo-50 shadow-2xl border-2 border-indigo-200/50 backdrop-blur-sm">
+              <HumanSensorDashboard />
             </div>
-          ) : null}
+
+            {/* Transcript - Right Side */}
+            <div className="w-[580px] shrink-0 flex flex-col rounded-3xl bg-gradient-to-br from-white via-purple-50 to-pink-50 shadow-2xl border-2 border-purple-200/50 overflow-hidden backdrop-blur-sm">
+              <div className="px-5 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <span>💬</span>
+                  <span>Conversation</span>
+                </h2>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <Transcript
+                  userText={userText}
+                  setUserText={setUserText}
+                  onSendMessage={handleSendTextMessage}
+                  downloadRecording={downloadRecording}
+                  canSend={sessionStatus === "CONNECTED"}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Section: Events - Always visible on scroll */}
+          {isEventsPaneExpanded && (
+            <div className="flex gap-4 h-[400px] shrink-0">
+              <div className="flex-1 flex flex-col rounded-3xl bg-gradient-to-br from-white via-blue-50 to-cyan-50 shadow-2xl border-2 border-blue-200/50 overflow-hidden backdrop-blur-sm">
+                <div className="px-5 py-3 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white">
+                  <h2 className="text-lg font-bold flex items-center gap-2">
+                    <span>📊</span>
+                    <span>Event Logs</span>
+                  </h2>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <Events isExpanded={isEventsPaneExpanded} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tasks Section - Always visible on scroll */}
+          {isTasksPaneOpen && (
+            <div className="flex gap-4 h-[400px] shrink-0">
+              <div className="flex-1 flex flex-col rounded-3xl bg-gradient-to-br from-white via-green-50 to-emerald-50 shadow-2xl border-2 border-green-200/50 overflow-hidden backdrop-blur-sm">
+                <div className="px-5 py-3 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white">
+                  <h2 className="text-lg font-bold flex items-center gap-2">
+                    <span>✅</span>
+                    <span>Tasks</span>
+                  </h2>
+                </div>
+                <div className="flex-1 overflow-auto p-4">
+                  <TaskApiDemo />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Fixed Bottom Toolbar */}
       <div className="bg-gradient-to-r from-gray-800 via-gray-900 to-black shadow-2xl">
         <BottomToolbar
           sessionStatus={sessionStatus}
@@ -535,12 +570,10 @@ function App() {
           isEventsPaneExpanded={isEventsPaneExpanded}
           setIsEventsPaneExpanded={(val) => {
             setIsEventsPaneExpanded(val);
-            if (val) setIsTasksPaneOpen(false);
           }}
           isTasksPaneOpen={isTasksPaneOpen}
           setIsTasksPaneOpen={(val) => {
             setIsTasksPaneOpen(val);
-            if (val) setIsEventsPaneExpanded(false);
           }}
           isAudioPlaybackEnabled={isAudioPlaybackEnabled}
           setIsAudioPlaybackEnabled={setIsAudioPlaybackEnabled}
