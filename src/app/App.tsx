@@ -608,7 +608,7 @@ function App() {
           </div>
 
           {isEventsPaneExpanded && (
-            <div className="h-[350px] shrink-0 rounded-xl overflow-hidden"
+            <div className="h-[550px] shrink-0 rounded-xl overflow-hidden"
               style={{
                 background: 'linear-gradient(145deg, rgba(10, 22, 40, 0.95), rgba(13, 27, 42, 0.98))',
                 border: '1px solid rgba(0, 168, 255, 0.15)',
@@ -620,12 +620,8 @@ function App() {
                   borderBottom: '1px solid rgba(0, 168, 255, 0.2)'
                 }}>
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-[#0a1628] border border-[#00a8ff]/40 flex items-center justify-center">
-                    <span className="text-sm">📊</span>
-                  </div>
                   <div>
-                    <h2 className="text-xs font-bold text-[#00a8ff] tracking-[0.15em] font-mono">FLIGHT TELEMETRY</h2>
-                    <p className="text-[8px] text-[#00f5ff]/60 tracking-[0.2em]">REAL-TIME DATA STREAM</p>
+                    <h2 className="text-xs font-bold text-[white] tracking-[0.15em] font-mono">LIVE LOGS</h2>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 text-[9px] text-[#00a8ff]/70 font-mono">
@@ -639,9 +635,8 @@ function App() {
             </div>
           )}
 
-          {/* Tasks Section */}
           {isTasksPaneOpen && (
-            <div className="h-[350px] shrink-0 rounded-xl overflow-hidden"
+            <div className="h-[550px] shrink-0 rounded-xl overflow-hidden"
               style={{
                 background: 'linear-gradient(145deg, rgba(10, 22, 40, 0.95), rgba(13, 27, 42, 0.98))',
                 border: '1px solid rgba(255, 153, 51, 0.15)',

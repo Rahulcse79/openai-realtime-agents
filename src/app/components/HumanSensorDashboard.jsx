@@ -7,18 +7,13 @@ import {
   Card,
   CardContent,
   Typography,
-  Avatar,
   Chip,
   Divider,
   LinearProgress,
 } from "@mui/material";
-import FavoriteIcon from "@mui/icons-material/Favorite";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import MicIcon from "@mui/icons-material/Mic";
-import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
 import ThermostatIcon from "@mui/icons-material/Thermostat";
-import AirIcon from "@mui/icons-material/Air";
-import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import ScienceIcon from "@mui/icons-material/Science";
 import TouchAppIcon from "@mui/icons-material/TouchApp";
 import BloodtypeIcon from "@mui/icons-material/Bloodtype";
@@ -231,7 +226,6 @@ export default function HumanSensorDashboard() {
             right: 15,
             width: 80,
             height: 80,
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='none' stroke='%2300f5ff' stroke-width='2'/%3E%3Cpath d='M50 15 L55 35 L75 35 L60 48 L65 70 L50 55 L35 70 L40 48 L25 35 L45 35 Z' fill='none' stroke='%2300f5ff' stroke-width='1.5'/%3E%3Ctext x='50' y='90' text-anchor='middle' fill='%2300f5ff' font-size='8' font-weight='bold'%3EIAF%3C/text%3E%3C/svg%3E")`,
             opacity: 0.6,
             animation: "pulse 2s ease-in-out infinite",
           },
@@ -312,7 +306,7 @@ export default function HumanSensorDashboard() {
             </Grid>
             <Grid item sx={{ marginLeft: "auto" }}>
               <Chip
-                label={`${employeeData.employmentStatus}`}
+                label={employeeData.employmentStatus}
                 sx={{
                   fontWeight: "bold",
                   fontSize: "1rem",
@@ -331,45 +325,6 @@ export default function HumanSensorDashboard() {
           </Grid>
         </CardContent>
       </Card>
-
-      <Box sx={{ mb: 3, textAlign: "center" }}>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 2,
-            mb: 1,
-          }}
-        >
-          <Box
-            sx={{
-              width: 60,
-              height: 2,
-              background: "linear-gradient(90deg, transparent, #d4af37)",
-            }}
-          />
-          <Typography
-            variant="h4"
-            fontWeight="bold"
-            sx={{
-              color: "#d4af37",
-              textShadow: "2px 2px 8px rgba(0,0,0,0.5)",
-              letterSpacing: 3,
-              textTransform: "uppercase",
-            }}
-          >
-            REAL-TIME {employeeData.name.toUpperCase()} ACTIVITY MONITORING
-          </Typography>
-          <Box
-            sx={{
-              width: 60,
-              height: 2,
-              background: "linear-gradient(90deg, #d4af37, transparent)",
-            }}
-          />
-        </Box>
-      </Box>
 
       <Grid container spacing={3}>
         <Grid item xs={12}>
@@ -2641,8 +2596,8 @@ export default function HumanSensorDashboard() {
           </Card>
         </Grid>
       </Grid>
+     
 
-      {/* Footer */}
       <Box
         sx={{
           mt: 4,
