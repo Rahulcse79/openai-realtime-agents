@@ -12,6 +12,7 @@ import type { RealtimeAgent } from "@openai/agents/realtime";
 import { useTranscript } from "@/app/contexts/TranscriptContext";
 import { useEvent } from "@/app/contexts/EventContext";
 import { useRealtimeSession } from "./hooks/useRealtimeSession";
+import HumanSensorDashboard from "./components/HumanSensorDashboard";
 import {
   createLanguageLockGuardrail,
   createModerationGuardrail,
@@ -38,13 +39,22 @@ function App() {
   >(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const handoffTriggeredRef = useRef(false);
-  const sdkAudioElement = React.useMemo(() => {
-    if (typeof window === "undefined") return undefined;
+  const [sdkAudioElement, setSdkAudioElement] = useState<HTMLAudioElement | undefined>(undefined);
+
+  useEffect(() => {
+    // Create audio element only on client side
     const el = document.createElement("audio");
     el.autoplay = true;
     el.style.display = "none";
     document.body.appendChild(el);
-    return el;
+    setSdkAudioElement(el);
+
+    return () => {
+      // Cleanup on unmount
+      if (el && document.body.contains(el)) {
+        document.body.removeChild(el);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -71,13 +81,15 @@ function App() {
   const [userText, setUserText] = useState<string>("");
   const [isPTTActive, setIsPTTActive] = useState<boolean>(false);
   const [isPTTUserSpeaking, setIsPTTUserSpeaking] = useState<boolean>(false);
-  const [isAudioPlaybackEnabled, setIsAudioPlaybackEnabled] = useState<boolean>(
-    () => {
-      if (typeof window === "undefined") return true;
-      const stored = localStorage.getItem("audioPlaybackEnabled");
-      return stored ? stored === "true" : true;
+  const [isAudioPlaybackEnabled, setIsAudioPlaybackEnabled] = useState<boolean>(true);
+
+  // Load audio playback setting from localStorage after mount
+  useEffect(() => {
+    const stored = localStorage.getItem("audioPlaybackEnabled");
+    if (stored !== null) {
+      setIsAudioPlaybackEnabled(stored === "true");
     }
-  );
+  }, []);
 
   const { startRecording, stopRecording, downloadRecording } =
     useAudioDownload();
@@ -393,63 +405,70 @@ function App() {
   const agentSetKey = searchParams.get("agentConfig") || "default";
 
   return (
-    <div className="text-base flex flex-col h-screen bg-gray-100 text-gray-800 relative">
-      <div className="p-5 text-lg font-semibold flex justify-between items-center">
+    <div className="text-base flex flex-col h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 text-gray-800">
+      {/* Header with Gradient */}
+      <div className="p-4 text-lg font-semibold flex justify-between items-center bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-lg text-white">
         <div
-          className="flex items-center cursor-pointer"
+          className="flex items-center cursor-pointer hover:opacity-90 transition-opacity"
           onClick={() => window.location.reload()}
         >
-          <div>
+          <div className="bg-white rounded-lg p-2 mr-3 shadow-md">
             <Image
               src="/openai-logomark.svg"
               alt="OpenAI Logo"
-              width={230}
-              height={100}
-              className="mr-2"
+              width={150}
+              height={80}
+              className="object-contain"
             />
           </div>
-          <div>
-            CORAL AI IVRS | Intelligent Voice Response System{" "}
-            <span className="text-gray-500"></span>
+          <div className="flex flex-col">
+            <div className="text-xl font-bold tracking-wide">
+              CORAL AI IVRS
+            </div>
+            <div className="text-xs font-normal opacity-90">
+              Intelligent Voice Response System
+            </div>
           </div>
         </div>
-        <div className="flex items-center">
-          <label className="flex items-center text-base gap-1 mr-2 font-medium">
-            Scenario
-          </label>
-          <div className="relative inline-block">
-            <select
-              value={agentSetKey}
-              onChange={handleAgentChange}
-              className="appearance-none border border-gray-300 rounded-lg text-base px-2 py-1 pr-8 cursor-pointer font-normal focus:outline-none"
-            >
-              {Object.keys(allAgentSets).map((agentKey) => (
-                <option key={agentKey} value={agentKey}>
-                  {agentKey}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-600">
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M5.23 7.21a.75.75 0 011.06.02L10 10.44l3.71-3.21a.75.75 0 111.04 1.08l-4.25 3.65a.75.75 0 01-1.04 0L5.21 8.27a.75.75 0 01.02-1.06z"
-                  clipRule="evenodd"
-                />
-              </svg>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md">
+            <label className="flex items-center text-sm gap-2 mr-2 font-medium">
+              📋 Scenario
+            </label>
+            <div className="relative inline-block">
+              <select
+                value={agentSetKey}
+                onChange={handleAgentChange}
+                className="appearance-none bg-white text-gray-800 border-none rounded-lg text-sm px-3 py-1.5 pr-8 cursor-pointer font-medium focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-sm"
+              >
+                {Object.keys(allAgentSets).map((agentKey) => (
+                  <option key={agentKey} value={agentKey}>
+                    {agentKey}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-600">
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.44l3.71-3.21a.75.75 0 111.04 1.08l-4.25 3.65a.75.75 0 01-1.04 0L5.21 8.27a.75.75 0 01.02-1.06z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
 
           {agentSetKey && (
-            <div className="flex items-center ml-6">
-              <label className="flex items-center text-base gap-1 mr-2 font-medium">
-                Agent
+            <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md">
+              <label className="flex items-center text-sm gap-2 mr-2 font-medium">
+                🤖 Agent
               </label>
               <div className="relative inline-block">
                 <select
                   value={selectedAgentName}
                   onChange={handleSelectedAgentChange}
-                  className="appearance-none border border-gray-300 rounded-lg text-base px-2 py-1 pr-8 cursor-pointer font-normal focus:outline-none"
+                  className="appearance-none bg-white text-gray-800 border-none rounded-lg text-sm px-3 py-1.5 pr-8 cursor-pointer font-medium focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-sm"
                 >
                   {selectedAgentConfigSet?.map((agent) => (
                     <option key={agent.name} value={agent.name}>
@@ -476,48 +495,59 @@ function App() {
         </div>
       </div>
 
-      <div className="flex flex-1 gap-2 px-2 overflow-hidden relative">
-        <Transcript
-          userText={userText}
-          setUserText={setUserText}
-          onSendMessage={handleSendTextMessage}
-          downloadRecording={downloadRecording}
-          canSend={sessionStatus === "CONNECTED"}
-        />
+      <div className="flex flex-1 gap-3 p-3 overflow-hidden">
+        <div className="flex-1 overflow-auto rounded-2xl bg-white shadow-2xl border border-gray-200">
+          <HumanSensorDashboard />
+        </div>
 
-        <div className="flex w-[420px] shrink-0 flex-col gap-2 overflow-hidden">
-          <Events isExpanded={isEventsPaneExpanded} />
+        <div className="flex w-[520px] shrink-0 flex-col gap-3">
+          <div className="rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-xl border border-gray-200 overflow-hidden">
+            <Transcript
+              userText={userText}
+              setUserText={setUserText}
+              onSendMessage={handleSendTextMessage}
+              downloadRecording={downloadRecording}
+              canSend={sessionStatus === "CONNECTED"}
+            />
+          </div>
+
+          <div className="rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-xl border border-gray-200 overflow-hidden">
+            <Events isExpanded={isEventsPaneExpanded} />
+          </div>
+
           {isTasksPaneOpen && !isEventsPaneExpanded ? (
-            <div className="overflow-auto px-2 pb-2">
+            <div className="overflow-auto rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-xl border border-gray-200 p-4">
               <TaskApiDemo />
             </div>
           ) : null}
         </div>
       </div>
 
-      <BottomToolbar
-        sessionStatus={sessionStatus}
-        onToggleConnection={onToggleConnection}
-        isPTTActive={isPTTActive}
-        setIsPTTActive={setIsPTTActive}
-        isPTTUserSpeaking={isPTTUserSpeaking}
-        handleTalkButtonDown={handleTalkButtonDown}
-        handleTalkButtonUp={handleTalkButtonUp}
-        isEventsPaneExpanded={isEventsPaneExpanded}
-        setIsEventsPaneExpanded={(val) => {
-          setIsEventsPaneExpanded(val);
-          if (val) setIsTasksPaneOpen(false);
-        }}
-        isTasksPaneOpen={isTasksPaneOpen}
-        setIsTasksPaneOpen={(val) => {
-          setIsTasksPaneOpen(val);
-          if (val) setIsEventsPaneExpanded(false);
-        }}
-        isAudioPlaybackEnabled={isAudioPlaybackEnabled}
-        setIsAudioPlaybackEnabled={setIsAudioPlaybackEnabled}
-        codec={urlCodec}
-        onCodecChange={handleCodecChange}
-      />
+      <div className="bg-gradient-to-r from-gray-800 via-gray-900 to-black shadow-2xl">
+        <BottomToolbar
+          sessionStatus={sessionStatus}
+          onToggleConnection={onToggleConnection}
+          isPTTActive={isPTTActive}
+          setIsPTTActive={setIsPTTActive}
+          isPTTUserSpeaking={isPTTUserSpeaking}
+          handleTalkButtonDown={handleTalkButtonDown}
+          handleTalkButtonUp={handleTalkButtonUp}
+          isEventsPaneExpanded={isEventsPaneExpanded}
+          setIsEventsPaneExpanded={(val) => {
+            setIsEventsPaneExpanded(val);
+            if (val) setIsTasksPaneOpen(false);
+          }}
+          isTasksPaneOpen={isTasksPaneOpen}
+          setIsTasksPaneOpen={(val) => {
+            setIsTasksPaneOpen(val);
+            if (val) setIsEventsPaneExpanded(false);
+          }}
+          isAudioPlaybackEnabled={isAudioPlaybackEnabled}
+          setIsAudioPlaybackEnabled={setIsAudioPlaybackEnabled}
+          codec={urlCodec}
+          onCodecChange={handleCodecChange}
+        />
+      </div>
     </div>
   );
 }

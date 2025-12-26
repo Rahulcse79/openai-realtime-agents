@@ -1,0 +1,199 @@
+{
+  "timestamp": "2025-01-26T11:32:10+05:30",
+  "userId": "1",
+  "employeeNumber": "ER225",
+
+  "brain_nervous_system": {
+    "EEG": {
+      "alpha": 8.5,
+      "beta": 14.2,
+      "theta": 5.1,
+      "focusLevel": 72,
+      "stressLevel": 38,
+      "sleepState": "Awake"
+    },
+    "EMG": {
+      "muscleActivity": 62,
+      "tensionLevel": 45,
+      "fatigueLevel": 30
+    },
+    "EOG": {
+      "eyeMovementRate": 18,
+      "alertnessScore": 76
+    },
+    "fNIRS": {
+      "brainOxygenLevel": 68,
+      "cognitiveLoad": "Medium"
+    }
+  },
+
+  "heart_blood": {
+    "heartRatePPG": {
+      "bpm": 82,
+      "signalQuality": "Good"
+    },
+    "ECG": {
+      "rhythm": "Normal",
+      "waveform": [0.12, 0.18, 0.22, 0.15, 0.1]
+    },
+    "bloodPressure": {
+      "systolic": 122,
+      "diastolic": 78
+    },
+    "spo2": {
+      "oxygenPercent": 97
+    },
+    "hrv": {
+      "rmssd": 42,
+      "stressScore": 35
+    }
+  },
+
+  "respiration_lungs": {
+    "respirationRate": 18,
+    "airflow": {
+      "volume": 5.2,
+      "unit": "L/min"
+    },
+    "spirometer": {
+      "lungCapacity": 4.1,
+      "unit": "Liters"
+    },
+    "co2": {
+      "exhaledCO2": 38,
+      "unit": "mmHg"
+    }
+  },
+
+  "temperature_sweat": {
+    "bodyTemperature": 36.7,
+    "skinTemperature": 34.1,
+    "gsrEda": {
+      "conductance": 6.8,
+      "stressLevel": 42
+    },
+    "sweatSensor": {
+      "sodiumLevel": 45,
+      "hydrationStatus": "Normal"
+    }
+  },
+
+  "touch_motion": {
+    "touch": {
+      "contact": true
+    },
+    "pressure": {
+      "force": 12.6,
+      "unit": "N"
+    },
+    "fsr": {
+      "load": 3.4,
+      "unit": "kg"
+    },
+    "vibration": {
+      "tremorLevel": 1.2
+    },
+    "haptic": {
+      "feedbackActive": false
+    },
+    "accelerometer": {
+      "x": 0.02,
+      "y": 0.01,
+      "z": 0.98
+    },
+    "gyroscope": {
+      "roll": 1.2,
+      "pitch": 0.8,
+      "yaw": 0.3
+    },
+    "magnetometer": {
+      "heading": 182
+    }
+  },
+
+  "smell_taste_chemical": {
+    "gasSensor": {
+      "smellIntensity": 22
+    },
+    "chemicalSensor": {
+      "tasteProfile": "Neutral"
+    },
+    "phSensor": {
+      "phValue": 7.1
+    },
+    "salivaSensor": {
+      "cortisolLevel": 12.4
+    },
+    "breathSensor": {
+      "alcoholLevel": 0.0,
+      "ketoneLevel": 0.4
+    }
+  },
+
+  "vision_eye": {
+    "camera": {
+      "faceDetected": true,
+      "emotion": "Neutral"
+    },
+    "irEyeTracker": {
+      "focusLevel": 70
+    },
+    "pupilSensor": {
+      "dilation": 3.4
+    },
+    "blinkRate": {
+      "blinksPerMinute": 18,
+      "fatigueScore": 28
+    }
+  },
+
+  "blood_biochemical": {
+    "glucose": {
+      "value": 98,
+      "unit": "mg/dL"
+    },
+    "lactate": {
+      "value": 1.6,
+      "unit": "mmol/L"
+    },
+    "cholesterol": {
+      "value": 180,
+      "unit": "mg/dL"
+    },
+    "hemoglobin": {
+      "value": 14.2,
+      "unit": "g/dL"
+    }
+  },
+
+  "emotion_ai": {
+    "stressLevel": "Medium",
+    "emotionState": "Calm",
+    "fatigueIndex": 32,
+    "anxietyScore": 28,
+    "panicDetected": false
+  },
+
+  "audio_voice": {
+    "microphone": {
+      "voiceDetected": true
+    },
+    "pitch": {
+      "hz": 185
+    },
+    "energy": {
+      "db": -22
+    },
+    "silence": {
+      "pauseDuration": 0.8
+    },
+    "speechRate": {
+      "wordsPerMinute": 132
+    },
+    "voiceEmotionModel": {
+      "emotion": "Calm",
+      "stressProbability": 0.31,
+      "fearProbability": 0.08
+    }
+  }
+}

@@ -63,7 +63,7 @@ function BottomToolbar({
   }
 
   return (
-    <div className="p-4 flex flex-row items-center justify-center gap-x-8">
+    <div className="p-4 flex flex-row items-center justify-center gap-x-8 text-white">
       <button
         onClick={onToggleConnection}
         className={getConnectionButtonClasses()}
@@ -83,7 +83,7 @@ function BottomToolbar({
         />
         <label
           htmlFor="push-to-talk"
-          className="flex items-center cursor-pointer"
+          className="flex items-center cursor-pointer text-white"
         >
           Push to talk
         </label>
@@ -94,12 +94,12 @@ function BottomToolbar({
           onTouchEnd={handleTalkButtonUp}
           disabled={!isPTTActive}
           className={
-            (isPTTUserSpeaking ? "bg-gray-300" : "bg-gray-200") +
-            " py-1 px-4 cursor-pointer rounded-md" +
-            (!isPTTActive ? " bg-gray-100 text-gray-400" : "")
+            (isPTTUserSpeaking ? "bg-red-700 scale-110" : "bg-red-600 hover:bg-red-700") +
+            " w-16 h-16 rounded-full text-white cursor-pointer font-bold shadow-lg transform transition-all duration-200 flex items-center justify-center" +
+            (!isPTTActive ? " !bg-gray-600 text-gray-400 cursor-not-allowed" : "")
           }
         >
-          Talk
+          🎤
         </button>
       </div>
 
@@ -114,7 +114,7 @@ function BottomToolbar({
         />
         <label
           htmlFor="audio-playback"
-          className="flex items-center cursor-pointer"
+          className="flex items-center cursor-pointer text-white"
         >
           Audio playback
         </label>
@@ -128,7 +128,7 @@ function BottomToolbar({
           onChange={(e) => setIsEventsPaneExpanded(e.target.checked)}
           className="w-4 h-4"
         />
-        <label htmlFor="logs" className="flex items-center cursor-pointer">
+        <label htmlFor="logs" className="flex items-center cursor-pointer text-white">
           Logs
         </label>
       </div>
@@ -141,18 +141,18 @@ function BottomToolbar({
           onChange={(e) => setIsTasksPaneOpen(e.target.checked)}
           className="w-4 h-4"
         />
-        <label htmlFor="tasks" className="flex items-center cursor-pointer">
+        <label htmlFor="tasks" className="flex items-center cursor-pointer text-white">
           Tasks
         </label>
       </div>
 
-      <div className="flex flex-row items-center gap-2">
-        <div>Codec:</div>
+      <div className="flex flex-row items-center gap-2 text-white">
+        <div className="font-medium">Codec:</div>
         <select
           id="codec-select"
           value={codec}
           onChange={handleCodecChange}
-          className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none cursor-pointer"
+          className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none cursor-pointer bg-white text-gray-800 font-medium shadow-md"
         >
           <option value="opus">Opus (48 kHz)</option>
           <option value="pcmu">PCMU (8 kHz)</option>
