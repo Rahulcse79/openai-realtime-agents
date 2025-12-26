@@ -688,7 +688,7 @@ export default function HumanSensorDashboard() {
                       color: "#00ff88",
                     }}
                   >
-                    SIGNAL: ████████ 98%
+                    SIGNAL: {sensorData.Signals.connection.signalStrength}%
                   </Typography>
                 </Box>
 

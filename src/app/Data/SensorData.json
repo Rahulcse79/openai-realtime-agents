@@ -182,6 +182,12 @@
     }
   },
 
+  "Signals": {
+    "connection": {
+      "signalStrength": 90
+    }
+  },
+
   "audio_voice": {
     "microphone": {
       "voiceDetected": true

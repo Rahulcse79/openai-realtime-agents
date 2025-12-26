@@ -94,7 +94,7 @@ function BottomToolbar({
           onTouchEnd={handleTalkButtonUp}
           disabled={!isPTTActive}
           className={
-            (isPTTUserSpeaking ? "bg-red-700 scale-110" : "bg-red-600 hover:bg-red-700") +
+            (isPTTUserSpeaking ? "bg-green-700 scale-110" : "bg-green-600 hover:bg-green-700") +
             " w-16 h-16 rounded-full text-white cursor-pointer font-bold shadow-lg transform transition-all duration-200 flex items-center justify-center" +
             (!isPTTActive ? " !bg-gray-600 text-gray-400 cursor-not-allowed" : "")
           }
