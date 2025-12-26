@@ -182,7 +182,7 @@ function Transcript({
                         className="text-[10px] font-mono tracking-wider mb-1"
                         style={{ color: isUser ? 'rgba(255, 153, 51, 0.7)' : 'rgba(0, 245, 255, 0.6)' }}
                       >
-                        {isUser ? '👤 PILOT' : '🤖 AI COPILOT'} • {timestamp}
+                        {isUser ? '👤 Me' : '🤖 Agent'} • {timestamp}
                       </div>
                       <div className={`whitespace-pre-wrap ${messageStyle}`}>
                         <ReactMarkdown>{displayTitle}</ReactMarkdown>
