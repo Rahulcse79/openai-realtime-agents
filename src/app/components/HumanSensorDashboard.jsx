@@ -136,11 +136,15 @@ export default function HumanSensorDashboard() {
                 {employeeData.currentTask}
               </Typography>
             </Grid>
-            <Grid item>
+            <Grid item sx={{ marginLeft: 'auto' }}>
               <Chip
-                label={`Status: ${employeeData.employmentStatus}`}
+                label={employeeData.employmentStatus}
                 color="success"
-                sx={{ fontWeight: "bold" }}
+                sx={{ 
+                  fontWeight: "bold",
+                  fontSize: "0.9rem",
+                  padding: "20px 16px"
+                }}
               />
             </Grid>
           </Grid>
