@@ -26,7 +26,7 @@ async function proxy(req: NextRequest) {
   const target = new URL(targetUrl);
 
   const headers = new Headers();
-  // headers.set("Authorization", getAuthHeader(req));
+  headers.set("Authorization", getAuthHeader(req));
 
   const ct = req.headers.get("content-type");
   if (ct) headers.set("content-type", ct);
