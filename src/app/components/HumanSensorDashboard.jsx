@@ -38,6 +38,7 @@ import {
 import sensorData from "../Data/SensorData.json";
 import employeeData from "../Data/employeeData.json";
 import employeeImage from "../Data/Images/ER225.jpg";
+import hologram from "../Data/Images/hologram.png";
 
 const heartWave = sensorData.heart_blood.ECG.waveform.map((v, i) => ({
   t: i + 1,
@@ -91,23 +92,6 @@ export default function HumanSensorDashboard() {
     setLastUpdated(new Date(sensorData.timestamp).toLocaleString());
   }, []);
 
-  // Indian Air Force - Advanced Aerospace Theme Colors
-  const iafColors = {
-    deepSpace: "#0a0e1a",
-    cockpitBlue: "#0d1b2a",
-    skyBlue: "#1b263b",
-    neonCyan: "#00f5ff",
-    neonBlue: "#00a8ff",
-    hologramGreen: "#00ff88",
-    warningOrange: "#ff6b35",
-    alertRed: "#ff2e63",
-    gold: "#ffd700",
-    silver: "#c0c0c0",
-    saffron: "#ff9933",
-    white: "#ffffff",
-    green: "#138808",
-  };
-
   const glassCardStyle = {
     borderRadius: 3,
     background:
@@ -150,10 +134,10 @@ export default function HumanSensorDashboard() {
   return (
     <Box
       sx={{
-        p: 3,
+        display: "flex",
+        minHeight: "100vh",
         background:
           "linear-gradient(135deg, #0a0e1a 0%, #0d1b2a 25%, #1b263b 50%, #0d1b2a 75%, #0a0e1a 100%)",
-        minHeight: "100vh",
         position: "relative",
         "&::before": {
           content: '""',
@@ -196,144 +180,56 @@ export default function HumanSensorDashboard() {
         },
       }}
     >
-      <Card
+      <Box
         sx={{
-          borderRadius: 3,
-          mb: 3,
-          background:
-            "linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #0d1b2a 100%)",
-          color: "#00f5ff",
-          boxShadow:
-            "0 10px 40px rgba(0, 245, 255, 0.2), inset 0 1px 0 rgba(0, 245, 255, 0.1)",
-          overflow: "hidden",
-          position: "relative",
-          border: "2px solid rgba(0, 245, 255, 0.3)",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "3px",
-            background:
-              "linear-gradient(90deg, #ff9933, #00f5ff, #00ff88, #00f5ff, #138808)",
-            animation: "scanline 3s linear infinite",
-          },
-          "&::after": {
-            content: '""',
-            position: "absolute",
-            top: 15,
-            right: 15,
-            width: 80,
-            height: 80,
-            opacity: 0.6,
-            animation: "pulse 2s ease-in-out infinite",
-          },
-          "@keyframes scanline": {
-            "0%": {
-              background:
-                "linear-gradient(90deg, #ff9933, #00f5ff, #00ff88, #00f5ff, #138808)",
-            },
-            "50%": {
-              background:
-                "linear-gradient(90deg, #138808, #00f5ff, #00ff88, #00f5ff, #ff9933)",
-            },
-            "100%": {
-              background:
-                "linear-gradient(90deg, #ff9933, #00f5ff, #00ff88, #00f5ff, #138808)",
-            },
-          },
-          "@keyframes pulse": {
-            "0%, 100%": { opacity: 0.6, transform: "scale(1)" },
-            "50%": { opacity: 0.9, transform: "scale(1.05)" },
-          },
+          width: { xs: "500px", sm: "620px", md: "720px" },
+          minWidth: { xs: "500px", sm: "620px", md: "720px" },
+          maxWidth: { xs: "520px", sm: "620px", md: "720px" },
+          background: "rgba(0,0,0,0.15)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "sticky",
+          left: 0,
+          top: 0,
+          height: "100vh",
+          zIndex: 2,
+          boxShadow: "2px 0 24px 0 rgba(0,245,255,0.08)",
         }}
       >
-        <CardContent sx={{ position: "relative", zIndex: 1, py: 3 }}>
-          <Grid container spacing={3} alignItems="center">
-            <Grid item>
-              <Box
-                sx={{
-                  position: "relative",
-                  "&::after": {
-                    content: '""',
-                    position: "absolute",
-                    inset: -4,
-                    borderRadius: "50%",
-                    background:
-                      "linear-gradient(135deg, #d4af37, rgba(212, 175, 55, 0.3))",
-                    zIndex: -1,
-                  },
-                }}
-              >
-                <Image
-                  src={employeeImage}
-                  alt={employeeData.name}
-                  width={90}
-                  height={90}
-                  style={{
-                    borderRadius: "50%",
-                    border: "4px solid #d4af37",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
-                  }}
-                />
-              </Box>
-            </Grid>
-            <Grid item xs>
-              <Typography
-                variant="h4"
-                fontWeight="bold"
-                sx={{
-                  color: "#c3b091",
-                  textShadow: "2px 2px 4px rgba(0,0,0,0.4)",
-                }}
-              >
-                {employeeData.name}
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{ color: "rgba(195, 176, 145, 0.9)", mt: 0.5 }}
-              >
-                {employeeData.position} | {employeeData.department}
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: "rgba(195, 176, 145, 0.75)", mt: 0.5 }}
-              >
-                ID: {employeeData.employeeNumber} | Team:{" "}
-                {employeeData.currentTask}
-              </Typography>
-            </Grid>
-            <Grid item sx={{ marginLeft: "auto" }}>
-              <Chip
-                label={employeeData.employmentStatus}
-                sx={{
-                  fontWeight: "bold",
-                  fontSize: "1rem",
-                  padding: "24px 20px",
-                  background:
-                    "linear-gradient(135deg, #138808 0%, #0d5c06 100%)",
-                  color: "#ffffff",
-                  boxShadow: "0 4px 15px rgba(19, 136, 8, 0.4)",
-                  border: "2px solid rgba(212, 175, 55, 0.5)",
-                  "& .MuiChip-label": {
-                    px: 2,
-                  },
-                }}
-              />
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+        <Image src={hologram} alt="hologram" />
+      </Box>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Grid container spacing={2}>
+      <Box
+        sx={{
+          flex: 1,
+          pl: { xs: 0, sm: 2, md: 4 },
+          pr: { xs: 0, sm: 2, md: 4 },
+          py: 3,
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+
+        <Grid item xs={12} sx={{ mb: 4 }}>
+          <Grid container spacing={3} justifyContent="center" alignItems="stretch">
             {vitalSignsData.map((vital, idx) => (
-              <Grid item xs={6} sm={4} md={2} key={idx}>
+              <Grid item xs={12} sm={6} md={2} key={idx} sx={{ display: 'flex' }}>
                 <Card
                   sx={{
                     ...glassCardStyle,
+                    minWidth: 170,
+                    maxWidth: 170,
+                    minHeight: 170,
+                    maxHeight: 170,
+                    width: 170,
+                    height: 170,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    boxShadow: '0 4px 24px 0 rgba(0,0,0,0.10)',
                     background: `linear-gradient(135deg, ${
                       idx === 0
                         ? "#8b0000, #5c1010"
@@ -348,9 +244,10 @@ export default function HumanSensorDashboard() {
                         : "#3d4a2d, #2d3524"
                     })`,
                     border: "1px solid rgba(212, 175, 55, 0.3)",
+                    margin: 'auto',
                   }}
                 >
-                  <CardContent sx={{ textAlign: "center", py: 2 }}>
+                  <CardContent sx={{ textAlign: "center", py: 2, px: 1 }}>
                     <Typography
                       variant="caption"
                       fontWeight="bold"
@@ -400,7 +297,7 @@ export default function HumanSensorDashboard() {
                     textTransform: "uppercase",
                   }}
                 >
-                  🛡️ BIOMETRIC HOLOGRAM
+                  🛡️ {employeeData.name}
                 </Typography>
               </Box>
               <Box
@@ -1046,11 +943,7 @@ export default function HumanSensorDashboard() {
               <Divider sx={{ my: 2 }} />
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <Typography
-                    variant="caption"
-                    color="white"
-                    fontWeight="bold"
-                  >
+                  <Typography variant="caption" color="white" fontWeight="bold">
                     Focus Level
                   </Typography>
                   <LinearProgress
@@ -1075,11 +968,7 @@ export default function HumanSensorDashboard() {
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography
-                    variant="caption"
-                    color="white"
-                    fontWeight="bold"
-                  >
+                  <Typography variant="caption" color="white" fontWeight="bold">
                     Stress Level
                   </Typography>
                   <LinearProgress
@@ -1104,11 +993,7 @@ export default function HumanSensorDashboard() {
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography
-                    variant="caption"
-                    color="white"
-                    fontWeight="bold"
-                  >
+                  <Typography variant="caption" color="white" fontWeight="bold">
                     Muscle Activity
                   </Typography>
                   <LinearProgress
@@ -1133,11 +1018,7 @@ export default function HumanSensorDashboard() {
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography
-                    variant="caption"
-                    color="white"
-                    fontWeight="bold"
-                  >
+                  <Typography variant="caption" color="white" fontWeight="bold">
                     Alertness
                   </Typography>
                   <LinearProgress
@@ -1695,7 +1576,7 @@ export default function HumanSensorDashboard() {
                   fontWeight="bold"
                   sx={{ color: "#d4af37", letterSpacing: 1 }}
                 >
-                   PSYCH-OPS ANALYSIS
+                  PSYCH-OPS ANALYSIS
                 </Typography>
               </Box>
               <Box sx={{ textAlign: "center", my: 3 }}>
@@ -2491,11 +2372,7 @@ export default function HumanSensorDashboard() {
                 </Grid>
                 <Grid item xs={12}>
                   <Divider sx={{ my: 1 }} />
-                  <Typography
-                    variant="caption"
-                    color="white"
-                    fontWeight="bold"
-                  >
+                  <Typography variant="caption" color="white" fontWeight="bold">
                     📊 Accelerometer
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
@@ -2505,6 +2382,7 @@ export default function HumanSensorDashboard() {
                       sx={{
                         background: "rgba(102, 126, 234, 0.15)",
                         fontWeight: "bold",
+                        color: "white",
                       }}
                     />
                     <Chip
@@ -2513,6 +2391,7 @@ export default function HumanSensorDashboard() {
                       sx={{
                         background: "rgba(102, 126, 234, 0.15)",
                         fontWeight: "bold",
+                        color: "white",
                       }}
                     />
                     <Chip
@@ -2521,16 +2400,13 @@ export default function HumanSensorDashboard() {
                       sx={{
                         background: "rgba(102, 126, 234, 0.15)",
                         fontWeight: "bold",
+                        color: "white",
                       }}
                     />
                   </Box>
                 </Grid>
                 <Grid item xs={12}>
-                  <Typography
-                    variant="caption"
-                    color="white"
-                    fontWeight="bold"
-                  >
+                  <Typography variant="caption" color="white" fontWeight="bold">
                     🔄 Gyroscope
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
@@ -2595,31 +2471,30 @@ export default function HumanSensorDashboard() {
             </CardContent>
           </Card>
         </Grid>
-      </Grid>
-     
 
-      <Box
-        sx={{
-          mt: 4,
-          py: 2,
-          textAlign: "center",
-          borderRadius: 3,
-          background: "rgba(255,255,255,0.1)",
-          backdropFilter: "blur(10px)",
-        }}
-      >
-        <Typography
-          variant="body2"
-          sx={{ color: "rgba(255,255,255,0.9)", fontWeight: "bold" }}
+        <Box
+          sx={{
+            mt: 4,
+            py: 2,
+            textAlign: "center",
+            borderRadius: 3,
+            background: "rgba(255,255,255,0.1)",
+            backdropFilter: "blur(10px)",
+          }}
         >
-          🕐 Last Updated: {lastUpdated} | 👤 User ID: {sensorData.userId}
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{ color: "rgba(255,255,255,0.6)", mt: 0.5, display: "block" }}
-        >
-          Real-time biometric monitoring powered by advanced sensor technology
-        </Typography>
+          <Typography
+            variant="body2"
+            sx={{ color: "rgba(255,255,255,0.9)", fontWeight: "bold" }}
+          >
+            🕐 Last Updated: {lastUpdated} | 👤 User ID: {sensorData.userId}
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{ color: "rgba(255,255,255,0.6)", mt: 0.5, display: "block" }}
+          >
+            Real-time biometric monitoring powered by advanced sensor technology
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );
