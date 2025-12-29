@@ -7,6 +7,7 @@
 ## Table of Contents
 
 * [Overview](#overview)
+* {ScreenShort}(#screen-short)
 * [Key Features](#key-features)
 * [Architecture](#architecture)
 * [Quickstart](#quickstart)
@@ -36,6 +37,12 @@ The platform:
 * Records structured session data for later review and analytics.
 
 This repository contains a frontend dashboard (React/Next.js), backend services (Node.js), and glue logic for real-time audio and sensors.
+
+---
+
+## ScreenShort
+
+<img width="1440" height="900" alt="AI_ML_BASED_IVRS_SS" src="https://github.com/user-attachments/assets/45810533-1dad-43ba-88cd-066b148bab8e" />
 
 ---
 
