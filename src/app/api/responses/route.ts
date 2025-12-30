@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { setCorsHeaders } from "@/app/api/utils/cors";
@@ -8,16 +7,15 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-  return setCorsHeaders(NextResponse.json({ error: "Invalid JSON body" }, { status: 400 }));
+    return setCorsHeaders(
+      NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    );
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return setCorsHeaders(
-      NextResponse.json(
-        { error: "Missing OPENAI_API_KEY" },
-        { status: 500 }
-      )
+      NextResponse.json({ error: "Missing OPENAI_API_KEY" }, { status: 500 })
     );
   }
 
@@ -25,9 +23,9 @@ export async function POST(req: NextRequest) {
 
   try {
     if (body?.text?.format?.type === "json_schema") {
-  return await structuredResponse(openai, body);
+      return await structuredResponse(openai, body);
     } else {
-  return await textResponse(openai, body);
+      return await textResponse(openai, body);
     }
   } catch (err: any) {
     console.error("OpenAI proxy error", err);
@@ -46,7 +44,7 @@ async function structuredResponse(openai: OpenAI, body: any) {
       ...(body as any),
       stream: false,
     });
-  return setCorsHeaders(NextResponse.json(response));
+    return setCorsHeaders(NextResponse.json(response));
   } catch (err: any) {
     console.error("Structured response error", err);
     return setCorsHeaders(
@@ -64,7 +62,7 @@ async function textResponse(openai: OpenAI, body: any) {
       ...(body as any),
       stream: false,
     });
-  return setCorsHeaders(NextResponse.json(response));
+    return setCorsHeaders(NextResponse.json(response));
   } catch (err: any) {
     console.error("Text response error", err);
 
@@ -77,7 +75,6 @@ async function textResponse(openai: OpenAI, body: any) {
   }
 }
 
-// CORS preflight handler
 export function OPTIONS() {
   return setCorsHeaders(new NextResponse(null, { status: 200 }));
 }

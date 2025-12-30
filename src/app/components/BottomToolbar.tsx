@@ -55,10 +55,8 @@ function BottomToolbar({
     const cursorClass = isConnecting ? "cursor-not-allowed" : "cursor-pointer";
 
     if (isConnected) {
-      // Connected -> label "Disconnect" -> red
       return `bg-red-600 hover:bg-red-700 ${cursorClass} ${baseClasses}`;
     }
-    // Disconnected or connecting -> label is either "Connect" or "Connecting" -> black
     return `bg-black hover:bg-gray-900 ${cursorClass} ${baseClasses}`;
   }
 

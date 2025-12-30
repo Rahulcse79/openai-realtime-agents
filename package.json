@@ -10,9 +10,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-  "start-https": "NODE_ENV=production node server.js",
-  "lint": "next lint"
+    "start": "node server.js",
+    "lint": "next lint"
   },
   "dependencies": {
     "@openai/agents": "^0.0.5",

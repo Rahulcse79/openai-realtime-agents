@@ -1,9 +1,9 @@
-import { RealtimeAgent } from '@openai/agents/realtime'
-import { getNextResponseFromCoralAiAgent } from './supervisorAgent'; 
+import { RealtimeAgent } from "@openai/agents/realtime";
+import { getNextResponseFromCoralAiAgent } from "./supervisorAgent";
 
 export const coralAiAgent = new RealtimeAgent({
-  name: 'coralAiAgent',
-  voice: 'sage',
+  name: "coralAiAgent",
+  voice: "sage",
   instructions: `
 ## Language Policy (IMPORTANT)
 - Automatically detect the caller's language.
@@ -136,13 +136,11 @@ findNearestStore:
   - getNextResponseFromCoralAiAgent(): "# Message\nYour current plan includes unlimited talk and text, plus 10GB of data per month. Would you like more details or information about upgrading?"
 - Assistant: "Your current plan includes unlimited talk and text, plus 10GB of data per month. Would you like more details or information about upgrading?"
 `,
-  tools: [
-    getNextResponseFromCoralAiAgent,
-  ],
+  tools: [getNextResponseFromCoralAiAgent],
 });
 
 export const CoralAiAgent = [coralAiAgent];
 
-export const CoralAiAgentCompanyName = 'Coral telecom';
+export const CoralAiAgentCompanyName = "Coral telecom";
 
 export default CoralAiAgent;

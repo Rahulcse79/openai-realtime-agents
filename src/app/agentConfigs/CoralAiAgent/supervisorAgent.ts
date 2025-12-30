@@ -6,7 +6,6 @@ const API_BASE =
     ? process.env.NEXT_PUBLIC_APP_URL!
     : window.location.origin;
 
-
 export const supervisorAgentInstructions = `You are an expert customer service supervisor agent, tasked with providing real-time guidance to a more junior agent that's chatting directly with the customer. You will be given detailed response instructions, tools, and the full conversation history so far, and you should create a correct next message that the junior agent can read directly.
 
 # Instructions
@@ -415,8 +414,7 @@ export const getNextResponseFromCoralAiAgent = tool({
   },
 
   execute: async (input, details) => {
-    const history: RealtimeItem[] =
-      (details?.context as any)?.history ?? [];
+    const history: RealtimeItem[] = (details?.context as any)?.history ?? [];
 
     const body = {
       model: "gpt-4.1",

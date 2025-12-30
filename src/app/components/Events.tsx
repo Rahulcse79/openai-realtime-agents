@@ -54,10 +54,7 @@ function Events({ isExpanded }: EventsProps) {
                 log.eventData?.response?.status_details?.error != null;
 
               return (
-                <div
-                  key={`${log.id}-${idx}`}
-                  className="py-2 px-3"
-                >
+                <div key={`${log.id}-${idx}`} className="py-2 px-3">
                   <div
                     onClick={() => toggleExpand(log.id)}
                     className="flex items-center justify-between cursor-pointer"
@@ -67,7 +64,7 @@ function Events({ isExpanded }: EventsProps) {
                         style={{ color: arrowInfo.color }}
                         className="ml-1 mr-2"
                       >
-                      {arrowInfo.symbol}
+                        {arrowInfo.symbol}
                       </span>
                       <span
                         className={

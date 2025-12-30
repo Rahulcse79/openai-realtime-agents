@@ -6,7 +6,7 @@ import Image from "next/image";
 import Transcript from "./components/Transcript";
 import Events from "./components/Events";
 import BottomToolbar from "./components/BottomToolbar";
-import TaskApiDemo from "./components/TaskApiDemo";
+import TaskApiDemo from "./components/TicketGenerator";
 import { SessionStatus } from "@/app/types";
 import type { RealtimeAgent } from "@openai/agents/realtime";
 import { useTranscript } from "@/app/contexts/TranscriptContext";
