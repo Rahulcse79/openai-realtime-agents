@@ -1,5 +1,6 @@
 import { RealtimeItem, tool } from "@openai/agents/realtime";
 import employeeData from "../../Data/employeeData.json";
+import TopicData from "../../Data/topicData.json";
 
 const API_BASE =
   typeof window === "undefined"
@@ -29,7 +30,7 @@ When the employee wants to create a ticket (or you infer that intent), follow th
 You are a multilingual IVRS voice assistant.
 
 ### 1) Choose a single conversation language
-- Determine the caller's language from the FIRST clear, full sentence the caller says.
+- Determine the caller's language , full sentence the caller says.
 - Set that as the **Conversation Language**.
 
 ### 2) Persist it across the whole conversation
@@ -289,9 +290,32 @@ async function createTaskTicket(args: any, ticket: any) {
   }
 }
 
+function detectDepartment(subject: string, description: string): string {
+  const departments = TopicData.departments.map((d: any) =>
+    d.name.toLowerCase()
+  );
+  const text = `${subject} ${description}`.toLowerCase();
+  for (const dept of departments) {
+    if (text.includes(dept)) {
+      const found = TopicData.departments.find(
+        (d: any) => d.name.toLowerCase() === dept
+      );
+      if (found) return found.name;
+    }
+  }
+  return TopicData.departments[0].name;
+}
+
+// Helper: Get department head email by department name
+function getDepartmentHeadEmail(departmentName: string): string | undefined {
+  const dept = TopicData.departments.find(
+    (d: any) => d.name === departmentName
+  );
+  return dept?.headEmail;
+}
+
 async function sendTicketMail(args: any, ticket: any) {
   if (!args?.sendTo?.length) return;
-
   try {
     await fetch(`${API_BASE}/api/mailGateway`, {
       method: "POST",
@@ -299,7 +323,7 @@ async function sendTicketMail(args: any, ticket: any) {
       body: JSON.stringify({
         to: args.sendTo,
         username: ticket.requester.name,
-        department: ticket.requester.department,
+        department: ticket.recipientTeam,
         ticketNo: ticket.ticketRef,
         issueTitle: args.subject,
         issueDetails: args.description,
@@ -321,18 +345,26 @@ function getToolResponse(name: string, args: any) {
       }
       return employeeData;
     }
-
     case "createEmployeeTicket": {
+      const recipientTeam =
+        args.recipientTeam || detectDepartment(args.subject, args.description);
+      const deptHeadEmail = getDepartmentHeadEmail(recipientTeam);
+      const sendTo = [];
+      if (Array.isArray(args.sendTo)) {
+        for (const cc of args.sendTo) {
+          if (typeof cc === "string" && !cc.includes("@")) sendTo.push(cc);
+        }
+      }
+      if (deptHeadEmail) sendTo.push(deptHeadEmail);
       const ticket = {
         ticketRef: generateTicketRef(),
         status: "CREATED",
         createdAt: new Date().toISOString(),
         requester: employeeData,
+        recipientTeam,
       };
-
-      createTaskTicket(args, ticket);
-      sendTicketMail(args, ticket);
-
+      createTaskTicket({ ...args, recipientTeam, sendTo }, ticket);
+      sendTicketMail({ ...args, recipientTeam, sendTo }, ticket);
       return ticket;
     }
 
