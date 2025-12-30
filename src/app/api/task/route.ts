@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const DEFAULT_BACKEND_ORIGIN =
-  process.env.TASK_BACKEND_BASE_URL ?? "http://localhost:8996/app/v2";
+  process.env.TASK_BACKEND_BASE_URL ?? "http://192.168.100.249/services/app/v2";
 
 function getAuthHeader(req: NextRequest): string {
   const incoming = req.headers.get("authorization");
@@ -10,7 +10,7 @@ function getAuthHeader(req: NextRequest): string {
   }
 
   // const token = process.env.TASK_AUTH_TOKEN;
-  const token = "Opaque 00aa5095-4fa4-4816-8381-5792d1dbe24f";
+  const token = "Opaque 192.168.100.249";
   if (!token) {
     throw new Error("TASK_AUTH_TOKEN is not defined in environment variables");
   }

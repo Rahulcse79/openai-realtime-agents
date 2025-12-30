@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import {
+import type {
   RealtimeSession,
   RealtimeAgent,
-  OpenAIRealtimeWebRTC,
 } from '@openai/agents/realtime';
 
 import { applyCodecPreferences } from '../lib/codecUtils';
@@ -120,10 +119,21 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
     }: ConnectOptions) => {
       if (sessionRef.current) return; // already connected
 
+      // Ensure we're in a real browser runtime before importing the SDK.
+      if (typeof window === 'undefined') {
+        throw new Error('RealtimeSession can only connect in the browser');
+      }
+      if (typeof (window as any).RTCPeerConnection === 'undefined') {
+        throw new Error('WebRTC is not available in this browser (RTCPeerConnection missing)');
+      }
+
       updateStatus('CONNECTING');
 
       const ek = await getEphemeralKey();
       const rootAgent = initialAgents[0];
+
+      // Dynamic import prevents shims from running during initial bundle evaluation.
+      const { RealtimeSession, OpenAIRealtimeWebRTC } = await import('@openai/agents/realtime');
 
       sessionRef.current = new RealtimeSession(rootAgent, {
         transport: new OpenAIRealtimeWebRTC({

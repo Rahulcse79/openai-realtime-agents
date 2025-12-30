@@ -269,8 +269,8 @@ async function createTaskTicket(args: any, ticket: any) {
       taskPriority: "Normal",
       currentStats: "New",
     };
-    const token = "Opaque 00aa5095-4fa4-4816-8381-5792d1dbe24f";
-    const response = await fetch("http://localhost:8996/app/v2/task/create", {
+    const token = "Opaque 192.168.100.249";
+    const response = await fetch("http://192.168.100.249/services/app/v2/task/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

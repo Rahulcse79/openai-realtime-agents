@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { loadServerEnvAsync } from "@/app/lib/envSetup";
 
 export async function GET() {
   try {
+    await loadServerEnvAsync();
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(

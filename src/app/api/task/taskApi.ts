@@ -55,7 +55,7 @@ export type TaskModel = TaskCreateModel & {
 
 function getAuthHeader() {
   // const token = process.env.TASK_AUTH_TOKEN;
-  const token = "Opaque 00aa5095-4fa4-4816-8381-5792d1dbe24f";
+  const token = "Opaque 192.168.100.249";
   if (!token)
     throw new Error("TASK_AUTH_TOKEN not defined in environment variables");
   return {
@@ -91,7 +91,7 @@ async function apiFetch<T>(
   return (await res.text()) as unknown as T;
 }
 
-const BASE = process.env.TASK_BACKEND_BASE_URL ?? "http://localhost:8996/app/v2";
+const BASE = process.env.TASK_BACKEND_BASE_URL ?? "http://192.168.100.249/services/app/v2";
 
 export const taskApi = {
   listAll: () =>
