@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     : [
         'http://localhost:3000',
         'http://127.0.0.1:3000',
-        'http://192.168.6.182:3000', // Explicit LAN IP for dev access
+        'http://192.168.6.182:3000',
         'http://192.168.*.*:3000',
         'http://10.*.*.*:3000',
         'http://172.16.*.*:3000',
