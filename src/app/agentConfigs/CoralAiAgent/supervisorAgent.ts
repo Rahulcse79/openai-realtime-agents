@@ -1,6 +1,11 @@
 import { RealtimeItem, tool } from "@openai/agents/realtime";
-
 import employeeData from "../../Data/employeeData.json";
+
+const API_BASE =
+  typeof window === "undefined"
+    ? process.env.NEXT_PUBLIC_APP_URL!
+    : window.location.origin;
+
 
 export const supervisorAgentInstructions = `You are an expert customer service supervisor agent, tasked with providing real-time guidance to a more junior agent that's chatting directly with the customer. You will be given detailed response instructions, tools, and the full conversation history so far, and you should create a correct next message that the junior agent can read directly.
 
@@ -242,66 +247,56 @@ function generateTicketRef() {
 }
 
 async function fetchResponsesMessage(body: any) {
-  const response = await fetch("/api/responses", {
+  const response = await fetch(`${API_BASE}/api/responses`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...body, parallel_tool_calls: false }),
   });
 
   if (!response.ok) {
-    console.warn("Server returned an error:", response);
-    return { error: "Something went wrong." };
+    console.warn("Responses API error:", response.status);
+    return { error: true };
   }
 
-  const completion = await response.json();
-  return completion;
+  return response.json();
 }
 
 async function createTaskTicket(args: any, ticket: any) {
   try {
-    const taskPayload = {
-      tasksName: `${ticket.requester.name} Department : ${args.recipientTeam} - ${args.subject}`,
-      taskDescription: `Created Ticket Ref: ${ticket.ticketRef}`,
-      taskType: "General",
-      taskPriority: "Normal",
-      currentStats: "New",
-    };
-    const token = "Opaque 192.168.100.249";
-    const response = await fetch("http://192.168.100.249/services/app/v2/task/create", {
+    const response = await fetch(process.env.TASK_API_URL!, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": token,
+        Authorization: process.env.TASK_API_TOKEN!,
       },
-      body: JSON.stringify(taskPayload),
+      body: JSON.stringify({
+        tasksName: `${ticket.requester.name} - ${args.subject}`,
+        taskDescription: `Ticket Ref: ${ticket.ticketRef}`,
+        taskType: "General",
+        taskPriority: "Normal",
+        currentStats: "New",
+      }),
     });
 
     if (!response.ok) {
-      console.error("[TASK] Failed to create task:", response.status);
+      console.error("[TASK] Failed:", response.status);
       return null;
     }
 
-    const result = await response.json();
-    console.log("[TASK] Task created successfully:", result);
-    return result;
+    return response.json();
   } catch (err) {
-    console.error("[TASK] Failed to create task:", err);
+    console.error("[TASK] Error:", err);
     return null;
   }
 }
 
 async function sendTicketMail(args: any, ticket: any) {
-  if (!args?.sendTo || args.sendTo.length === 0) return;
+  if (!args?.sendTo?.length) return;
 
   try {
-    await fetch("/api/mailGateway", {
+    await fetch(`${API_BASE}/api/mailGateway`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         to: args.sendTo,
         username: ticket.requester.name,
@@ -311,34 +306,37 @@ async function sendTicketMail(args: any, ticket: any) {
         issueDetails: args.description,
       }),
     });
-
-    console.log("[MAIL] Send to notification sent:", args.sendTo.join(", "));
   } catch (err) {
-    console.error("[MAIL] Failed to send send to mail:", err);
+    console.error("[MAIL] Error:", err);
   }
 }
 
-function getToolResponse(fName: string, args: any) {
-  switch (fName) {
-    case "getEmployeeProfile":
+function getToolResponse(name: string, args: any) {
+  switch (name) {
+    case "getEmployeeProfile": {
+      if (
+        args?.employeeNumber &&
+        args.employeeNumber !== employeeData.employeeNumber
+      ) {
+        return { error: "Employee not found" };
+      }
       return employeeData;
+    }
+
     case "createEmployeeTicket": {
       const ticket = {
         ticketRef: generateTicketRef(),
         status: "CREATED",
         createdAt: new Date().toISOString(),
-        requester: {
-          employeeNumber: employeeData.employeeNumber,
-          name: employeeData.name,
-          department: employeeData.department,
-          team: employeeData.team,
-        },
+        requester: employeeData,
       };
-      // Create task and send mail asynchronously
+
       createTaskTicket(args, ticket);
       sendTicketMail(args, ticket);
+
       return ticket;
     }
+
     default:
       return { result: true };
   }
@@ -349,95 +347,78 @@ async function handleToolCalls(
   response: any,
   addBreadcrumb?: (title: string, data?: any) => void
 ) {
-  let currentResponse = response;
+  let current = response;
+  let guard = 0;
 
-  while (true) {
-    if (currentResponse?.error) {
-      return { error: "Something went wrong." } as any;
-    }
+  while (guard++ < 6) {
+    if (current?.error) return { error: true };
 
-    const outputItems: any[] = currentResponse.output ?? [];
-    const functionCalls = outputItems.filter(
-      (item) => item.type === "function_call"
+    const calls = (current.output ?? []).filter(
+      (i: any) => i.type === "function_call"
     );
 
-    if (functionCalls.length === 0) {
-      const assistantMessages = outputItems.filter(
-        (item) => item.type === "message"
-      );
-
-      const finalText = assistantMessages
-        .map((msg: any) => {
-          const contentArr = msg.content ?? [];
-          return contentArr
+    if (!calls.length) {
+      return (current.output ?? [])
+        .filter((i: any) => i.type === "message")
+        .flatMap((m: any) =>
+          (m.content ?? [])
             .filter((c: any) => c.type === "output_text")
             .map((c: any) => c.text)
-            .join("");
-        })
+        )
         .join("\n");
-
-      return finalText;
     }
-    for (const toolCall of functionCalls) {
-      const fName = toolCall.name;
-      const args = JSON.parse(toolCall.arguments || "{}");
-      const toolRes = getToolResponse(fName, args);
-      if (addBreadcrumb) {
-        addBreadcrumb(`[supervisorAgent] function call: ${fName}`, args);
-      }
-      if (addBreadcrumb) {
-        addBreadcrumb(
-          `[supervisorAgent] function call result: ${fName}`,
-          toolRes
-        );
-      }
+
+    for (const call of calls) {
+      const result = getToolResponse(
+        call.name,
+        JSON.parse(call.arguments || "{}")
+      );
+
+      addBreadcrumb?.(`[tool] ${call.name}`, result);
+
       body.input.push(
         {
           type: "function_call",
-          call_id: toolCall.call_id,
-          name: toolCall.name,
-          arguments: toolCall.arguments,
+          call_id: call.call_id,
+          name: call.name,
+          arguments: call.arguments,
         },
         {
           type: "function_call_output",
-          call_id: toolCall.call_id,
-          output: JSON.stringify(toolRes),
+          call_id: call.call_id,
+          output: JSON.stringify(result),
         }
       );
     }
-    currentResponse = await fetchResponsesMessage(body);
+
+    current = await fetchResponsesMessage(body);
   }
+
+  throw new Error("Tool loop exceeded limit");
 }
 
+/**
+ * =========================
+ * SUPERVISOR AGENT TOOL
+ * =========================
+ */
 export const getNextResponseFromCoralAiAgent = tool({
   name: "getNextResponseFromCoralAiAgent",
-  description:
-    "Determines the next response whenever the agent faces a non-trivial decision, produced by a highly intelligent supervisor agent. Returns a message describing what to do next.",
+  description: "Returns next supervisor-guided response",
   parameters: {
     type: "object",
     properties: {
-      relevantContextFromLastUserMessage: {
-        type: "string",
-        description:
-          "Key information from the user described in their most recent message. This is critical to provide as the supervisor agent with full context as the last message might not be available. Okay to omit if the user message didn't add any new information.",
-      },
+      relevantContextFromLastUserMessage: { type: "string" },
     },
     required: ["relevantContextFromLastUserMessage"],
     additionalProperties: false,
   },
+
   execute: async (input, details) => {
-    const { relevantContextFromLastUserMessage } = input as {
-      relevantContextFromLastUserMessage: string;
-    };
+    const history: RealtimeItem[] =
+      (details?.context as any)?.history ?? [];
 
-    const addBreadcrumb = (details?.context as any)?.addTranscriptBreadcrumb as
-      | ((title: string, data?: any) => void)
-      | undefined;
-
-    const history: RealtimeItem[] = (details?.context as any)?.history ?? [];
-    const filteredLogs = history.filter((log) => log.type === "message");
-
-    const body: any = {
+    const body = {
       model: "gpt-4.1",
       input: [
         {
@@ -448,27 +429,21 @@ export const getNextResponseFromCoralAiAgent = tool({
         {
           type: "message",
           role: "user",
-          content: `==== Conversation History ====
-          ${JSON.stringify(filteredLogs, null, 2)}
-          
-          ==== Relevant Context From Last User Message ===
-          ${relevantContextFromLastUserMessage}
-          `,
+          content: JSON.stringify(history, null, 2),
         },
       ],
       tools: supervisorAgentTools,
     };
 
     const response = await fetchResponsesMessage(body);
-    if (response.error) {
-      return { error: "Something went wrong." };
-    }
+    if (response?.error) return { error: true };
 
-    const finalText = await handleToolCalls(body, response, addBreadcrumb);
-    if ((finalText as any)?.error) {
-      return { error: "Something went wrong." };
-    }
+    const finalText = await handleToolCalls(
+      body,
+      response,
+      (details?.context as any)?.addTranscriptBreadcrumb
+    );
 
-    return { nextResponse: finalText as string };
+    return { nextResponse: finalText };
   },
 });

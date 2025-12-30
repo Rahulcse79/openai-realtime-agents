@@ -119,12 +119,20 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
     }: ConnectOptions) => {
       if (sessionRef.current) return; // already connected
 
+
       // Ensure we're in a real browser runtime before importing the SDK.
       if (typeof window === 'undefined') {
         throw new Error('RealtimeSession can only connect in the browser');
       }
       if (typeof (window as any).RTCPeerConnection === 'undefined') {
         throw new Error('WebRTC is not available in this browser (RTCPeerConnection missing)');
+      }
+      if (
+        typeof navigator === 'undefined' ||
+        !navigator.mediaDevices ||
+        typeof navigator.mediaDevices.getUserMedia !== 'function'
+      ) {
+        throw new Error('Audio input is not available in this environment (getUserMedia missing)');
       }
 
       updateStatus('CONNECTING');

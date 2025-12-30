@@ -1,14 +1,23 @@
 import { NextResponse } from "next/server";
 import { loadServerEnvAsync } from "@/app/lib/envSetup";
+import { setCorsHeaders } from "@/app/api/utils/cors";
 
+/**
+ * POST /api/session
+ * Creates an OpenAI Realtime ephemeral session
+ */
 export async function GET() {
   try {
+    // Ensure env vars are loaded (for non-standard runtimes)
     await loadServerEnvAsync();
+
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json(
-        { error: "Missing OPENAI_API_KEY in environment variables" },
-        { status: 500 }
+      return setCorsHeaders(
+        NextResponse.json(
+          { error: "Missing OPENAI_API_KEY in environment variables" },
+          { status: 500 }
+        )
       );
     }
 
@@ -29,22 +38,41 @@ export async function GET() {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("OpenAI Realtime session error:", errorText);
-      return NextResponse.json(
-        {
-          error: "Failed to create OpenAI Realtime session",
-          detail: errorText,
-        },
-        { status: response.status }
+
+      return setCorsHeaders(
+        NextResponse.json(
+          {
+            error: "Failed to create OpenAI Realtime session",
+            detail: errorText,
+          },
+          { status: response.status }
+        )
       );
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error: any) {
-    console.error("Error in /session:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error", detail: error?.message ?? error },
-      { status: 500 }
+
+    return setCorsHeaders(NextResponse.json(data));
+  } catch (error: unknown) {
+    console.error("Error in /api/session:", error);
+
+    return setCorsHeaders(
+      NextResponse.json(
+        {
+          error: "Internal Server Error",
+          detail:
+            error instanceof Error ? error.message : String(error),
+        },
+        { status: 500 }
+      )
     );
   }
+}
+
+/**
+ * OPTIONS /api/session
+ * Handles CORS preflight
+ */
+export function OPTIONS() {
+  return setCorsHeaders(new NextResponse(null, { status: 200 }));
 }
