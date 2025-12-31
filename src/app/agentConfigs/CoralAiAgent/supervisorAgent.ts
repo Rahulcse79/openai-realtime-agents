@@ -1,6 +1,6 @@
 import { RealtimeItem, tool } from "@openai/agents/realtime";
 import employeeData from "../../Data/employeeData.json";
-import TopicData from "../../Data/topicData.json";
+import topicData from "../../Data/topicData.json";
 
 const API_BASE =
   typeof window === "undefined"
@@ -291,24 +291,24 @@ async function createTaskTicket(args: any, ticket: any) {
 }
 
 function detectDepartment(subject: string, description: string): string {
-  const departments = TopicData.departments.map((d: any) =>
+  const departments = topicData.departments.map((d: any) =>
     d.name.toLowerCase()
   );
   const text = `${subject} ${description}`.toLowerCase();
   for (const dept of departments) {
     if (text.includes(dept)) {
-      const found = TopicData.departments.find(
+      const found = topicData.departments.find(
         (d: any) => d.name.toLowerCase() === dept
       );
       if (found) return found.name;
     }
   }
-  return TopicData.departments[0].name;
+  return topicData.departments[0].name;
 }
 
 // Helper: Get department head email by department name
 function getDepartmentHeadEmail(departmentName: string): string | undefined {
-  const dept = TopicData.departments.find(
+  const dept = topicData.departments.find(
     (d: any) => d.name === departmentName
   );
   return dept?.headEmail;
