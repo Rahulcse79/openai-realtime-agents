@@ -1,0 +1,143 @@
+{
+  "hotel": {
+    "id": "taj-001",
+    "name": "The Grand Taj Hotel",
+    "brand": "Taj Hotels",
+    "classification": "Luxury 5-Star",
+    "timezone": "Asia/Kolkata",
+    "currency": "INR",
+    "address": {
+      "street": "1 Palace Road",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "country": "India",
+      "postalCode": "400001",
+      "geo": {
+        "lat": 18.921984,
+        "lng": 72.833452
+      }
+    },
+    "contact": {
+      "phone": "+91-22-40001234",
+      "email": "rahul.singh@coraltele.com",
+      "reservationsEmail": "rahul.singh@coraltele.com",
+      "supportEmail": "rahul.singh@coraltele.com",
+      "emergency": "+91-22-40009999"
+    }
+  },
+
+  "floors": [
+    {
+      "floorNumber": 1,
+      "name": "Deluxe Floor",
+      "floorEmail": "rahul.singh@coraltele.com",
+      "serviceZones": ["Housekeeping", "RoomService"]
+    },
+    {
+      "floorNumber": 2,
+      "name": "Executive Floor",
+      "floorEmail": "rahul.singh@coraltele.com",
+      "serviceZones": ["Housekeeping", "ButlerService"]
+    },
+    {
+      "floorNumber": 10,
+      "name": "Presidential Floor",
+      "floorEmail": "rahul.singh@coraltele.com",
+      "serviceZones": ["PrivateButler", "Security"]
+    }
+  ],
+
+  "rooms": [
+    {
+      "roomId": "M101",
+      "floor": 1,
+      "roomType": "Deluxe Room",
+      "roomEmailAlias": "rahul.singh@coraltele.com",
+      "iotEnabled": true
+    }
+  ],
+
+  "services": {
+    "aiConcierge": {
+      "email": "rahul.singh@coraltele.com",
+      "channels": ["Voice IVR", "Mobile App", "WhatsApp"],
+      "languages": ["English", "Hindi", "Tamil", "Punjabi"]
+    },
+
+    "roomServiceCatalog": [
+      {
+        "itemId": "RS-ICE",
+        "serviceType": "RoomService",
+        "name": "Ice Cubes",
+        "quantity": "1 Packet",
+        "slaMinutes": 10,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com"
+      },
+      {
+        "itemId": "RS-WATER",
+        "serviceType": "RoomService",
+        "name": "Mineral Water",
+        "quantity": "2 Bottles",
+        "slaMinutes": 5,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com"
+      }
+    ],
+
+    "luxuryServices": {
+      "spa": {
+        "name": "Jiva Spa",
+        "email": "rahul.singh@coraltele.com",
+        "bookingEmail": "rahul.singh@coraltele.com"
+      },
+      "restaurants": [
+        {
+          "name": "Wasabi",
+          "email": "rahul.singh@coraltele.com",
+          "managerEmail": "rahul.singh@coraltele.com"
+        },
+        {
+          "name": "Shamiana",
+          "email": "rahul.singh@coraltele.com",
+          "managerEmail": "rahul.singh@coraltele.com"
+        }
+      ],
+      "transport": {
+        "email": "rahul.singh@coraltele.com",
+        "airportPickup": true
+      }
+    }
+  },
+
+  "operations": {
+    "staff": [
+      {
+        "staffId": "STF-022",
+        "name": "Raj Gupta",
+        "role": "Room Service Associate",
+        "email": "rahul.singh@coraltele.com",
+        "departmentEmail": "rahul.singh@coraltele.com",
+        "assignedFloors": [1, 2]
+      }
+    ],
+
+    "escalationMatrix": {
+      "dutyManager": {
+        "name": "John Tuli",
+        "email": "rahul.singh@coraltele.com"
+      },
+      "generalManager": {
+        "name": "Navi Tiwari",
+        "email": "rahul.singh@coraltele.com"
+      }
+    }
+  },
+
+  "aiMlLayer": {
+    "notifications": {
+      "alertsEmail": "rahul.singh@coraltele.com",
+      "logsEmail": "rahul.singh@coraltele.com"
+    }
+  }
+}

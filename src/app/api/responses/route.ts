@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { loadServerEnvAsync } from "@/app/lib/envSetup";
 import { setCorsHeaders } from "@/app/api/utils/cors";
 
 export async function POST(req: NextRequest) {
+  await loadServerEnvAsync();
   let body: any;
   try {
     body = await req.json();

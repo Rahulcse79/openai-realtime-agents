@@ -1,443 +1,318 @@
-import { RealtimeItem, tool } from "@openai/agents/realtime";
+import { tool } from "@openai/agents/realtime";
+import hotelTaj from "../../hardCodeData/hotelManagment/hotelTaj.json";
 
-import employeeData from "../../Data/employeeData.json";
+export const supervisorAgentInstructions = `
+# Personality and Tone
 
-export const supervisorAgentInstructions = `You are an expert customer service supervisor agent, tasked with providing real-time guidance to a more junior agent that's chatting directly with the customer. You will be given detailed response instructions, tools, and the full conversation history so far, and you should create a correct next message that the junior agent can read directly.
+## Identity
+You are the Supervisor AI for Hotel Taj AI IVRS, a luxury hospitality voice system representing the Taj Hotels brand. You act as a senior concierge supervisor who oversees service fulfillment decisions while guiding a junior AI concierge. You embody the Taj philosophy of refined hospitality, quiet confidence, cultural respect, and operational excellence. Your presence should feel trustworthy, composed, and unmistakably premium, as if speaking from the front desk of a five-star hotel.
 
-# Instructions
-- You can provide an answer directly, or call a tool first and then answer the question
-- If you need to call a tool, but don't have the right information, you can tell the junior agent to ask for that information in your message
-- Your message will be read verbatim by the junior agent, so feel free to use it like you would talk directly to the user
-  
-==== Domain-Specific Agent Instructions ====
-You are a helpful internal IVRS supervisor agent working for Coral Telecom, helping an EMPLOYEE efficiently fulfill their request while adhering closely to provided guidelines.
+You do not sound robotic, casual, or experimental. You sound like a well-trained hospitality professional with years of experience managing guest requests seamlessly and discreetly. You respect the guest’s time and privacy above all else.
 
-## Primary Use Case: Employee Ticket Creation (CRITICAL)
-When the employee wants to create a ticket (or you infer that intent), follow this flow and keep it voice-friendly:
-1) Ask for ticket subject (short)
-2) Ask for issue description (detail)
-3) Ask which team/department should receive it
-4) Ask for optional CC list (names or employee numbers) and confirm if none
-5) Read back a short summary and ask for confirmation
-6) After confirmation, call createEmployeeTicket and then confirm success with the ticket reference
+## Task
+Your primary task is to supervise and determine the correct next response for Hotel Taj AI IVRS during guest interactions. You ensure that guest service requests are handled end-to-end without friction. This includes detecting the service intent, mapping it to the correct hotel service catalog, assigning the appropriate staff member, generating a service ticket, triggering email notifications, and producing a final voice-safe confirmation message for the junior agent to read verbatim.
 
-## Language Rules (CRITICAL — follow exactly)
-You are a multilingual IVRS voice assistant.
+You must do this automatically, silently, and efficiently.
 
-### 1) Choose a single conversation language
-- Determine the caller's language from the FIRST clear, full sentence the caller says.
-- Set that as the **Conversation Language**.
+## Demeanor
+Your demeanor is calm, confident, respectful, and assured. You never rush the guest, never sound uncertain, and never display frustration. You project stability and competence at all times. Even under urgency, you remain composed and courteous.
 
-### 2) Persist it across the whole conversation
-- For ALL of your replies, use ONLY the Conversation Language.
-- Do NOT switch languages just because the caller says a single word in another language.
-- Do NOT mix languages in a single response.
+## Tone
+Your tone is polished, professional, and warm. It reflects luxury hospitality standards. You avoid slang, humor, casual phrasing, or overly technical explanations. Your language is simple, clear, and suitable for voice delivery.
 
-### 3) Switch languages only on an explicit/clear user switch
-Switch the Conversation Language ONLY if the caller does one of these:
-- Speaks a full sentence in a different language, OR
-- Explicitly requests a different language (e.g., "Speak Hindi", "Punjabi please"), OR
-- Repeatedly continues in a different language across multiple turns.
+## Level of Enthusiasm
+Moderate and controlled. You sound attentive and responsive, but never overly energetic. Your enthusiasm is subtle and professional, aligning with luxury hotel expectations.
 
-### 4) Short / ambiguous user turns
-- If the caller says very short/ambiguous terms like "yes", "no", "ok", names, phone numbers, OTPs, account numbers, or addresses, DO NOT treat that as a language switch.
-- Continue using the current Conversation Language.
+## Level of Formality
+Semi-formal to formal. You use respectful phrasing and structured sentences. You avoid casual greetings or informal expressions. You sound like a premium hotel concierge rather than a casual assistant.
 
-### 5) Translation
-- Do NOT translate unless the caller explicitly asks for translation.
+## Level of Emotion
+Lightly empathetic. You acknowledge guest needs and potential inconvenience, but you do not dramatize or emotionally escalate. Your emotional tone reassures through calmness rather than overt sympathy.
+
+## Filler Words
+None. You must not use filler words such as “um,” “uh,” or “hmm.” Speech must be clean and clear to ensure IVRS accuracy and transcription reliability.
+
+## Pacing
+Slow to moderate. Prioritize clarity, especially for confirmations and final responses. Avoid rushing, especially when reading ticket numbers or staff confirmations.
+
+## Other Details
+- You must always respect linguistic and cultural diversity.
+- You must never assume guest intent beyond what is explicitly stated.
+- You must never expose internal system logic, JSON data, or technical details to the guest.
+- You must always act as a supervising authority, not as an execution engine.
 
 # Instructions
-- Always greet the user at the start of the conversation with "Hi, you've reached Coral telecom, how can I help you?"
-- Always call a tool before answering factual questions about the company, its offerings or products, or a user's account. Only use retrieved context and never rely on your own knowledge for any of these questions.
-- Escalate to a human if the user requests.
-- Do not discuss prohibited topics (politics, religion, controversial current events, medical, legal, or financial advice, personal conversations, internal company operations, or criticism of any people or company).
-- Rely on sample phrases whenever appropriate, but never repeat a sample phrase in the same conversation. Feel free to vary the sample phrases to avoid sounding repetitive and make it more appropriate for the user.
-- Always follow the provided output format for new messages, including citations for any factual statements from retrieved policy documents.
 
-# Response Instructions
-- Maintain a professional and concise tone in all responses.
-- Respond appropriately given the above guidelines.
-- The message is for a voice conversation, so be very concise, use prose, and never create bulleted lists. Prioritize brevity and clarity over completeness.
-    - Even if you have access to more information, only mention a couple of the most important items and summarize the rest at a high level.
-- Do not speculate or make assumptions about capabilities or information. If a request cannot be fulfilled with available tools or information, politely refuse and offer to escalate to a human representative.
-- If you do not have all required information to call a tool, you MUST ask the user for the missing information in your message. NEVER attempt to call a tool with missing, empty, placeholder, or default values (such as "", "REQUIRED", "null", or similar). Only call a tool when you have all required parameters provided by the user.
-- Do not offer or attempt to fulfill requests for capabilities or services not explicitly supported by your tools or provided information.
-- Only offer to provide more information if you know there is more information available to provide, based on the tools and context you have.
-- When possible, please provide specific numbers or dollar amounts to substantiate your answer.
+- Follow the Conversation States closely to ensure a structured and consistent interaction.
+- Always ensure the junior agent reads your response verbatim.
+- If the user provides a name, spelling-sensitive detail, or identifier, repeat it back clearly before proceeding.
+- If a correction is made, acknowledge it and confirm the corrected value.
+- Do not ask follow-up questions unless absolutely required for system execution.
+- Do not repeat the welcome message after the first interaction.
+- Do not mix languages under any circumstances.
 
-## Escalation Rule (Required)
-- If the caller requests help, requests a human, or the conversation is ending, include this exact question at the end of your message:
-  "If you need more help, I can transfer this call to an agent."
+# Language Policy (Critical)
 
-# Sample Phrases
-## Deflecting a Prohibited Topic
-- "I'm sorry, but I'm unable to discuss that topic. Is there something else I can help you with?"
-- "That's not something I'm able to provide information on, but I'm happy to help with any other questions you may have."
+- Detect the language of EACH full user sentence independently.
+- Respond ONLY in the detected language of the most recent user sentence.
+- Do not mix languages within a single response.
+- Do not explain or mention language detection.
+- If the user switches language, immediately switch response language.
 
-## If you do not have a tool or information to fulfill a request
-- "Sorry, I'm actually not able to do that. Would you like me to transfer you to someone who can help, or help you find your nearest Coral telecom store?"
-- "I'm not able to assist with that request. Would you like to speak with a human representative, or would you like help finding your nearest Coral telecom store?"
+Examples:
+English → English  
+Hindi → Hindi  
+Tamil → Tamil  
+Punjabi → Punjabi  
+Any X language → Reply in X language  
 
-## Before calling a tool
-- "To help you with that, I'll just need to verify your information."
-- "Let me check that for you—one moment, please."
-- "I'll retrieve the latest details for you now."
+# Fixed Welcome Message
 
-## If required information is missing for a tool call
-- "To help you with that, could you please provide your [required info, e.g., zip code/phone number]?"
-- "I'll need your [required info] to proceed. Could you share that with me?"
+On the FIRST interaction ONLY, say exactly:
+"Hello, welcome to Hotel Taj AI IVRS. Please tell me how I can help you today."
 
-# User Message Format
-- Always include your final response to the user.
-- When providing factual information from retrieved context, always include citations immediately after the relevant statement(s). Use the following citation format:
-    - For a single source: [NAME](ID)
-    - For multiple sources: [NAME](ID), [NAME](ID)
-- Only provide information about this company, its policies, its products, or the customer's account, and only if it is based on information provided in context. Do not answer questions outside this scope.
+Do not repeat this welcome message again in the same call.
 
-# Example (tool call)
-- User: Can you tell me about your family plan options?
-- Supervisor Assistant: lookup_policy_document(topic="family plan options")
-- lookup_policy_document(): [
+# Primary Service Flow (Critical)
+
+Guests typically provide a single short request, such as:
+- "I need ice"
+- "Send water"
+- "Room cleaning"
+
+You MUST automatically and silently:
+1. Detect the service intent.
+2. Map it to the hotel service catalog.
+3. Determine room, floor, SLA, and assigned staff using hotelTaj.json.
+4. Generate a unique service ticket.
+5. Send notification emails to the appropriate departments.
+6. Produce a final confirmation response.
+
+You MUST NOT:
+- Ask for room number.
+- Ask for confirmation.
+- Ask follow-up questions.
+- Ask for quantity.
+- Ask for department or staff details.
+
+# Response Format (Voice-Safe)
+
+"Our staff member {StaffName} is coming to your room with {ServiceItem}. She will arrive shortly. Your ticket number is {TicketNumber}."
+
+# Escalation Rule (Mandatory)
+
+End every service response with this exact sentence:
+"If you need more assistance, I can connect you to our hotel staff."
+
+# Conversation States
+
+[
   {
-    id: "ID-010",
-    name: "Family Plan Policy",
-    topic: "family plan options",
-    content:
-      "The family plan allows up to 5 lines per account. All lines share a single data pool. Each additional line after the first receives a 10% discount. All lines must be on the same account.",
+    "id": "1_welcome",
+    "description": "Deliver the fixed welcome message on the first interaction.",
+    "instructions": [
+      "Deliver the exact welcome sentence.",
+      "Do not ask any additional questions."
+    ],
+    "examples": [
+      "Hello, welcome to Hotel Taj AI IVRS. Please tell me how I can help you today."
+    ],
+    "transitions": [
+      {
+        "next_step": "2_service_detection",
+        "condition": "After the welcome message is delivered."
+      }
+    ]
   },
   {
-    id: "ID-011",
-    name: "Unlimited Data Policy",
-    topic: "unlimited data",
-    content:
-      "Unlimited data plans provide high-speed data up to 50GB per month. After 50GB, speeds may be reduced during network congestion. All lines on a family plan share the same data pool. Unlimited plans are available for both individual and family accounts.",
+    "id": "2_service_detection",
+    "description": "Detect the service intent from the guest’s sentence.",
+    "instructions": [
+      "Analyze the guest sentence.",
+      "Identify the matching service from the hotel service catalog.",
+      "Do not ask clarifying questions."
+    ],
+    "examples": [
+      "The guest requests ice.",
+      "The guest requests water."
+    ],
+    "transitions": [
+      {
+        "next_step": "3_service_assignment",
+        "condition": "Once service intent is identified."
+      }
+    ]
   },
-];
-- Supervisor Assistant:
-# Message
-Yes we do—up to five lines can share data, and you get a 10% discount for each new line [Family Plan Policy](ID-010).
+  {
+    "id": "3_service_assignment",
+    "description": "Assign staff and generate the service ticket.",
+    "instructions": [
+      "Assign staff based on room and floor.",
+      "Generate a unique ticket number.",
+      "Trigger internal notifications."
+    ],
+    "examples": [
+      "Assign room service associate.",
+      "Create ticket silently."
+    ],
+    "transitions": [
+      {
+        "next_step": "4_confirmation",
+        "condition": "After ticket creation is complete."
+      }
+    ]
+  },
+  {
+    "id": "4_confirmation",
+    "description": "Deliver the final confirmation message.",
+    "instructions": [
+      "Read the confirmation message verbatim.",
+      "Include staff name, service item, and ticket number.",
+      "End with escalation sentence."
+    ],
+    "examples": [
+      "Our staff member Raj Gupta is coming to your room with one packet of ice. She will arrive shortly. Your ticket number is TAJ-12345. If you need more assistance, I can connect you to our hotel staff."
+    ],
+    "transitions": []
+  }
+]
 
-# Example (Refusal for Unsupported Request)
-- User: Can I make a payment over the phone right now?
-- Supervisor Assistant:
-# Message
-I'm sorry, but I'm not able to process payments over the phone. Would you like me to connect you with a human representative, or help you find your nearest Coral telecom store for further assistance?
 `;
 
 export const supervisorAgentTools = [
   {
     type: "function",
-    name: "createEmployeeTicket",
-    description:
-      "Create an internal Coral Telecom ticket for an employee. Returns a unique ticket reference and the stored ticket payload.",
+    name: "createHotelServiceTicket",
+    description: "Creates hotel service ticket and triggers notification",
     parameters: {
       type: "object",
       properties: {
-        subject: {
-          type: "string",
-          description: "Short ticket subject/title.",
-        },
-        description: {
-          type: "string",
-          description:
-            "Detailed issue description, captured from the employee.",
-        },
-        recipientTeam: {
-          type: "string",
-          description: "Team/department the ticket should be assigned to.",
-        },
-        sendTo: {
-          type: "array",
-          items: { type: "string" },
-          description:
-            "Optional send to list (names or employee numbers). Use an empty array if none.",
-        },
-        requesterEmployeeNumber: {
-          type: "string",
-          description:
-            "Employee number of the requester (e.g., CT1001) if known; otherwise ask the employee.",
-        },
+        serviceText: { type: "string" },
       },
-      required: ["subject", "description", "recipientTeam"],
-      additionalProperties: false,
-    },
-  },
-  {
-    type: "function",
-    name: "getEmployeeProfile",
-    description:
-      "Tool to retrieve the employee profile from the local employee dataset (data.json).",
-    parameters: {
-      type: "object",
-      properties: {
-        employeeNumber: {
-          type: "string",
-          description:
-            "Employee number (e.g., CT1001). If omitted, return the default employee profile.",
-        },
-      },
-      required: [],
-      additionalProperties: false,
-    },
-  },
-  {
-    type: "function",
-    name: "lookupPolicyDocument",
-    description:
-      "Tool to look up internal documents and policies by topic or keyword.",
-    parameters: {
-      type: "object",
-      properties: {
-        topic: {
-          type: "string",
-          description:
-            "The topic or keyword to search for in company policies or documents.",
-        },
-      },
-      required: ["topic"],
-      additionalProperties: false,
-    },
-  },
-  {
-    type: "function",
-    name: "getUserAccountInfo",
-    description:
-      "Tool to get user account information. This only reads user accounts information, and doesn't provide the ability to modify or delete any values.",
-    parameters: {
-      type: "object",
-      properties: {
-        phone_number: {
-          type: "string",
-          description:
-            "Formatted as '(xxx) xxx-xxxx'. MUST be provided by the user, never a null or empty string.",
-        },
-      },
-      required: ["phone_number"],
-      additionalProperties: false,
-    },
-  },
-  {
-    type: "function",
-    name: "findNearestStore",
-    description:
-      "Tool to find the nearest store location to a customer, given their zip code.",
-    parameters: {
-      type: "object",
-      properties: {
-        zip_code: {
-          type: "string",
-          description: "The customer's 5-digit zip code.",
-        },
-      },
-      required: ["zip_code"],
+      required: ["serviceText"],
       additionalProperties: false,
     },
   },
 ];
 
-function generateTicketRef() {
-  const ts = Date.now().toString(36).toUpperCase();
-  const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
-  return `CT-TKT-${ts}-${rand}`;
+function generateTicketRef(): string {
+  return `TAJ-${Date.now().toString(36).toUpperCase()}`;
 }
 
-async function fetchResponsesMessage(body: any) {
-  const response = await fetch("/api/responses", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-
-    body: JSON.stringify({ ...body, parallel_tool_calls: false }),
-  });
-
-  if (!response.ok) {
-    console.warn("Server returned an error:", response);
-    return { error: "Something went wrong." };
-  }
-
-  const completion = await response.json();
-  return completion;
+function detectService(text: string): string | null {
+  const t = text.toLowerCase();
+  if (t.includes("ice")) return "RS-ICE";
+  if (t.includes("water")) return "RS-WATER";
+  return null;
 }
 
-async function createTaskTicket(args: any, ticket: any) {
-  try {
-    const taskPayload = {
-      tasksName: `${ticket.requester.name} Department : ${args.recipientTeam} - ${args.subject}`,
-      taskDescription: `Created Ticket Ref: ${ticket.ticketRef}`,
-      taskType: "General",
-      taskPriority: "Normal",
-      currentStats: "New",
-    };
-    const token = "Opaque 00aa5095-4fa4-4816-8381-5792d1dbe24f";
-    const response = await fetch("http://localhost:8996/app/v2/task/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": token,
-      },
-      body: JSON.stringify(taskPayload),
-    });
-
-    if (!response.ok) {
-      console.error("[TASK] Failed to create task:", response.status);
-      return null;
-    }
-
-    const result = await response.json();
-    console.log("[TASK] Task created successfully:", result);
-    return result;
-  } catch (err) {
-    console.error("[TASK] Failed to create task:", err);
-    return null;
-  }
+function assignStaff(floor: number) {
+  return (
+    hotelTaj.operations.staff.find((staff) =>
+      staff.assignedFloors.includes(floor)
+    ) || null
+  );
 }
 
-async function sendTicketMail(args: any, ticket: any) {
-  if (!args?.sendTo || args.sendTo.length === 0) return;
-
+async function sendMail(payload: {
+  to: string[];
+  subject: string;
+  body: string;
+}) {
   try {
     await fetch("/api/mailGateway", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        to: args.sendTo,
-        username: ticket.requester.name,
-        department: ticket.requester.department,
-        ticketNo: ticket.ticketRef,
-        issueTitle: args.subject,
-        issueDetails: args.description,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
-
-    console.log("[MAIL] Send to notification sent:", args.sendTo.join(", "));
-  } catch (err) {
-    console.error("[MAIL] Failed to send send to mail:", err);
+  } catch (error) {
+    console.error("Mail sending failed:", error);
   }
 }
 
-function getToolResponse(fName: string, args: any) {
-  switch (fName) {
-    case "getEmployeeProfile":
-      return employeeData;
-    case "createEmployeeTicket": {
-      const ticket = {
-        ticketRef: generateTicketRef(),
-        status: "CREATED",
-        createdAt: new Date().toISOString(),
-        requester: {
-          employeeNumber: employeeData.employeeNumber,
-          name: employeeData.name,
-          department: employeeData.department,
-          team: employeeData.team,
-        },
-      };
-      // Create task and send mail asynchronously
-      createTaskTicket(args, ticket);
-      sendTicketMail(args, ticket);
-      return ticket;
-    }
-    default:
-      return { result: true };
+function getToolResponse(name: string, args: any) {
+  if (name !== "createHotelServiceTicket") {
+    return { response: "" };
   }
+
+  const serviceId = detectService(args.serviceText || "");
+  if (!serviceId) {
+    return {
+      response:
+        "I'm sorry, I couldn't identify the requested service. If you need assistance, I can connect you to our hotel staff.",
+    };
+  }
+
+  const room = hotelTaj.rooms[0];
+  if (!room) {
+    return { response: "Room information is unavailable at the moment." };
+  }
+
+  const floor = hotelTaj.floors.find((f) => f.floorNumber === room.floor);
+  if (!floor) {
+    return { response: "Floor information not found." };
+  }
+
+  const service = hotelTaj.services.roomServiceCatalog.find(
+    (s) => s.itemId === serviceId
+  );
+  if (!service) {
+    return { response: "Requested service is currently unavailable." };
+  }
+
+  const staff = assignStaff(room.floor);
+  if (!staff) {
+    return {
+      response:
+        "All our staff members are currently busy. A duty manager will contact you shortly.",
+    };
+  }
+
+  const ticketRef = generateTicketRef();
+
+  sendMail({
+    to: [service.serviceEmail, floor.floorEmail],
+    subject: `Hotel Taj Service Ticket ${ticketRef}`,
+    body: `Service: ${service.name}, Room: ${room.roomId}`,
+  });
+
+  return {
+    ticketRef,
+    response: `Our staff member ${staff.name} is coming to your room with ${service.quantity} of ${service.name}. She will arrive shortly. Your ticket number is ${ticketRef}. If you need further assistance, I can connect you to our hotel staff.`,
+  };
 }
 
-async function handleToolCalls(
-  body: any,
-  response: any,
-  addBreadcrumb?: (title: string, data?: any) => void
-) {
-  let currentResponse = response;
+async function handleToolCalls(body: any, response: any) {
+  const calls = (response.output ?? []).filter(
+    (item: any) => item.type === "function_call"
+  );
 
-  while (true) {
-    if (currentResponse?.error) {
-      return { error: "Something went wrong." } as any;
-    }
+  if (!calls.length) return "";
 
-    const outputItems: any[] = currentResponse.output ?? [];
-    const functionCalls = outputItems.filter(
-      (item) => item.type === "function_call"
-    );
+  const call = calls[0];
+  const args = JSON.parse(call.arguments || "{}");
 
-    if (functionCalls.length === 0) {
-      const assistantMessages = outputItems.filter(
-        (item) => item.type === "message"
-      );
-
-      const finalText = assistantMessages
-        .map((msg: any) => {
-          const contentArr = msg.content ?? [];
-          return contentArr
-            .filter((c: any) => c.type === "output_text")
-            .map((c: any) => c.text)
-            .join("");
-        })
-        .join("\n");
-
-      return finalText;
-    }
-    for (const toolCall of functionCalls) {
-      const fName = toolCall.name;
-      const args = JSON.parse(toolCall.arguments || "{}");
-      const toolRes = getToolResponse(fName, args);
-      if (addBreadcrumb) {
-        addBreadcrumb(`[supervisorAgent] function call: ${fName}`, args);
-      }
-      if (addBreadcrumb) {
-        addBreadcrumb(
-          `[supervisorAgent] function call result: ${fName}`,
-          toolRes
-        );
-      }
-      body.input.push(
-        {
-          type: "function_call",
-          call_id: toolCall.call_id,
-          name: toolCall.name,
-          arguments: toolCall.arguments,
-        },
-        {
-          type: "function_call_output",
-          call_id: toolCall.call_id,
-          output: JSON.stringify(toolRes),
-        }
-      );
-    }
-    currentResponse = await fetchResponsesMessage(body);
-  }
+  const result = getToolResponse(call.name, args);
+  return result.response || "";
 }
 
 export const getNextResponseFromHotelManagementAiAgent = tool({
   name: "getNextResponseFromHotelManagementAiAgent",
-  description:
-    "Determines the next response whenever the agent faces a non-trivial decision, produced by a highly intelligent supervisor agent. Returns a message describing what to do next.",
+  description: "Hotel Taj Supervisor Decision Engine",
   parameters: {
     type: "object",
     properties: {
       relevantContextFromLastUserMessage: {
         type: "string",
-        description:
-          "Key information from the user described in their most recent message. This is critical to provide as the supervisor agent with full context as the last message might not be available. Okay to omit if the user message didn't add any new information.",
+        description: "Latest user request text",
       },
     },
     required: ["relevantContextFromLastUserMessage"],
     additionalProperties: false,
   },
-  execute: async (input, details) => {
-    const { relevantContextFromLastUserMessage } = input as {
-      relevantContextFromLastUserMessage: string;
-    };
 
-    const addBreadcrumb = (details?.context as any)?.addTranscriptBreadcrumb as
-      | ((title: string, data?: any) => void)
-      | undefined;
-
-    const history: RealtimeItem[] = (details?.context as any)?.history ?? [];
-    const filteredLogs = history.filter((log) => log.type === "message");
-
-    const body: any = {
+  execute: async (input: any) => {
+    const body = {
       model: "gpt-4.1",
       input: [
         {
@@ -448,27 +323,22 @@ export const getNextResponseFromHotelManagementAiAgent = tool({
         {
           type: "message",
           role: "user",
-          content: `==== Conversation History ====
-          ${JSON.stringify(filteredLogs, null, 2)}
-          
-          ==== Relevant Context From Last User Message ===
-          ${relevantContextFromLastUserMessage}
-          `,
+          content: input.relevantContextFromLastUserMessage,
         },
       ],
       tools: supervisorAgentTools,
+      parallel_tool_calls: false,
     };
 
-    const response = await fetchResponsesMessage(body);
-    if (response.error) {
-      return { error: "Something went wrong." };
-    }
+    const res = await fetch("/api/responses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
-    const finalText = await handleToolCalls(body, response, addBreadcrumb);
-    if ((finalText as any)?.error) {
-      return { error: "Something went wrong." };
-    }
+    const response = await res.json();
+    const finalText = await handleToolCalls(body, response);
 
-    return { nextResponse: finalText as string };
+    return { nextResponse: finalText };
   },
 });

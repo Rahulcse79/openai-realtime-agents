@@ -23,7 +23,6 @@ import { HotelManagementAiAgent } from "@/app/agentConfigs/HotelManagmentAiAgent
 import { HotelManagementAiAgentCompanyName } from "@/app/agentConfigs/HotelManagmentAiAgent";
 import useAudioDownload from "./hooks/useAudioDownload";
 import { useHandleSessionHistory } from "./hooks/useHandleSessionHistory";
-import { es } from "zod/v4/locales";
 
 const sdkScenarioMap: Record<string, RealtimeAgent[]> = {
   CoralAiScenario: CoralAiAgent,
