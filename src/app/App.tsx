@@ -19,13 +19,26 @@ import {
 import { allAgentSets, defaultAgentSetKey } from "@/app/agentConfigs";
 import { CoralAiAgent } from "@/app/agentConfigs/CoralAiAgent";
 import { CoralAiAgentCompanyName } from "@/app/agentConfigs/CoralAiAgent";
+import { HotelManagementAiAgent } from "@/app/agentConfigs/HotelManagmentAiAgent";
+import { HotelManagementAiAgentCompanyName } from "@/app/agentConfigs/HotelManagmentAiAgent";
+import useAudioDownload from "./hooks/useAudioDownload";
+import { useHandleSessionHistory } from "./hooks/useHandleSessionHistory";
+import { es } from "zod/v4/locales";
 
 const sdkScenarioMap: Record<string, RealtimeAgent[]> = {
   CoralAiScenario: CoralAiAgent,
+  HotelManagementAiScenario: HotelManagementAiAgent,
 };
 
-import useAudioDownload from "./hooks/useAudioDownload";
-import { useHandleSessionHistory } from "./hooks/useHandleSessionHistory";
+function getCompanyName(agentSetKey: string) {
+  if (agentSetKey === "HotelManagementAiScenario") {
+    return HotelManagementAiAgentCompanyName;
+  } else if (agentSetKey === "CoralAiScenario") {
+    return CoralAiAgentCompanyName;
+  }
+
+  return CoralAiAgentCompanyName;
+}
 
 function App() {
   const searchParams = useSearchParams()!;
@@ -173,8 +186,9 @@ function App() {
         }
 
         const moderationGuardrail = createModerationGuardrail(
-          CoralAiAgentCompanyName
+          getCompanyName(agentSetKey)
         );
+
         const languageGuardrail = createLanguageLockGuardrail();
 
         await connect({

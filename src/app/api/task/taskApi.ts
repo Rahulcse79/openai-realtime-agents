@@ -56,7 +56,7 @@ export type TaskModel = TaskCreateModel & {
 };
 
 function getBackendBaseUrl(): string {
-  const base = process.env.TASK_BACKEND_BASE_URL || "https://192.168.100.249/services/api/v2";
+  const base = process.env.TASK_BACKEND_BASE_URL;
   if (!base) {
     throw new Error("TASK_BACKEND_BASE_URL not defined");
   }
@@ -64,7 +64,7 @@ function getBackendBaseUrl(): string {
 }
 
 function getAuthHeader(): HeadersInit {
-  const token = process.env.TASK_AUTH_TOKEN || "Opaque 192.168.100.249";
+  const token = process.env.TASK_AUTH_TOKEN;
   if (!token) {
     throw new Error("TASK_AUTH_TOKEN not defined");
   }
