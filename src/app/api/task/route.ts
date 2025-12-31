@@ -3,7 +3,7 @@ import { loadServerEnvAsync } from "@/app/lib/envSetup";
 import { setCorsHeaders } from "@/app/api/utils/cors";
 
 function getBackendOrigin() {
-  const origin = process.env.TASK_BACKEND_BASE_URL;
+  const origin = process.env.TASK_BACKEND_BASE_URL || "https://192.168.100.249/services/api/v2";
   if (!origin) {
     throw new Error("TASK_BACKEND_BASE_URL is not defined");
   }
@@ -16,7 +16,7 @@ function getAuthHeader(req: NextRequest): string {
     return incoming;
   }
 
-  const token = process.env.TASK_AUTH_TOKEN;
+  const token = process.env.TASK_AUTH_TOKEN || "Opaque 192.168.100.249";
   if (!token) {
     throw new Error("TASK_AUTH_TOKEN is not defined");
   }
