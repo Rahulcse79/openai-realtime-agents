@@ -1,11 +1,6 @@
 import { RealtimeItem, tool } from "@openai/agents/realtime";
-import employeeData from "../../Data/employeeData.json";
-import topicData from "../../Data/topicData.json";
 
-const API_BASE =
-  typeof window === "undefined"
-    ? process.env.NEXT_PUBLIC_APP_URL!
-    : window.location.origin;
+import employeeData from "../../Data/employeeData.json";
 
 export const supervisorAgentInstructions = `You are an expert customer service supervisor agent, tasked with providing real-time guidance to a more junior agent that's chatting directly with the customer. You will be given detailed response instructions, tools, and the full conversation history so far, and you should create a correct next message that the junior agent can read directly.
 
@@ -30,7 +25,7 @@ When the employee wants to create a ticket (or you infer that intent), follow th
 You are a multilingual IVRS voice assistant.
 
 ### 1) Choose a single conversation language
-- Determine the caller's language , full sentence the caller says.
+- Determine the caller's language from the FIRST clear, full sentence the caller says.
 - Set that as the **Conversation Language**.
 
 ### 2) Persist it across the whole conversation
@@ -247,127 +242,103 @@ function generateTicketRef() {
 }
 
 async function fetchResponsesMessage(body: any) {
-  const response = await fetch(`${API_BASE}/api/responses`, {
+  const response = await fetch("/api/responses", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
+
     body: JSON.stringify({ ...body, parallel_tool_calls: false }),
   });
 
   if (!response.ok) {
-    console.warn("Responses API error:", response.status);
-    return { error: true };
+    console.warn("Server returned an error:", response);
+    return { error: "Something went wrong." };
   }
 
-  return response.json();
+  const completion = await response.json();
+  return completion;
 }
 
 async function createTaskTicket(args: any, ticket: any) {
   try {
-    const response = await fetch(process.env.TASK_API_URL!, {
+    const taskPayload = {
+      tasksName: `${ticket.requester.name} Department : ${args.recipientTeam} - ${args.subject}`,
+      taskDescription: `Created Ticket Ref: ${ticket.ticketRef}`,
+      taskType: "General",
+      taskPriority: "Normal",
+      currentStats: "New",
+    };
+    const token = "Opaque 00aa5095-4fa4-4816-8381-5792d1dbe24f";
+    const response = await fetch("http://localhost:8996/app/v2/task/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: process.env.TASK_API_TOKEN!,
+        "Authorization": token,
       },
-      body: JSON.stringify({
-        tasksName: `${ticket.requester.name} - ${args.subject}`,
-        taskDescription: `Ticket Ref: ${ticket.ticketRef}`,
-        taskType: "General",
-        taskPriority: "Normal",
-        currentStats: "New",
-      }),
+      body: JSON.stringify(taskPayload),
     });
 
     if (!response.ok) {
-      console.error("[TASK] Failed:", response.status);
+      console.error("[TASK] Failed to create task:", response.status);
       return null;
     }
 
-    return response.json();
+    const result = await response.json();
+    console.log("[TASK] Task created successfully:", result);
+    return result;
   } catch (err) {
-    console.error("[TASK] Error:", err);
+    console.error("[TASK] Failed to create task:", err);
     return null;
   }
 }
 
-function detectDepartment(subject: string, description: string): string {
-  const departments = topicData.departments.map((d: any) =>
-    d.name.toLowerCase()
-  );
-  const text = `${subject} ${description}`.toLowerCase();
-  for (const dept of departments) {
-    if (text.includes(dept)) {
-      const found = topicData.departments.find(
-        (d: any) => d.name.toLowerCase() === dept
-      );
-      if (found) return found.name;
-    }
-  }
-  return topicData.departments[0].name;
-}
-
-// Helper: Get department head email by department name
-function getDepartmentHeadEmail(departmentName: string): string | undefined {
-  const dept = topicData.departments.find(
-    (d: any) => d.name === departmentName
-  );
-  return dept?.headEmail;
-}
-
 async function sendTicketMail(args: any, ticket: any) {
-  if (!args?.sendTo?.length) return;
+  if (!args?.sendTo || args.sendTo.length === 0) return;
+
   try {
-    await fetch(`${API_BASE}/api/mailGateway`, {
+    await fetch("/api/mailGateway", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         to: args.sendTo,
         username: ticket.requester.name,
-        department: ticket.recipientTeam,
+        department: ticket.requester.department,
         ticketNo: ticket.ticketRef,
         issueTitle: args.subject,
         issueDetails: args.description,
       }),
     });
+
+    console.log("[MAIL] Send to notification sent:", args.sendTo.join(", "));
   } catch (err) {
-    console.error("[MAIL] Error:", err);
+    console.error("[MAIL] Failed to send send to mail:", err);
   }
 }
 
-function getToolResponse(name: string, args: any) {
-  switch (name) {
-    case "getEmployeeProfile": {
-      if (
-        args?.employeeNumber &&
-        args.employeeNumber !== employeeData.employeeNumber
-      ) {
-        return { error: "Employee not found" };
-      }
+function getToolResponse(fName: string, args: any) {
+  switch (fName) {
+    case "getEmployeeProfile":
       return employeeData;
-    }
     case "createEmployeeTicket": {
-      const recipientTeam =
-        args.recipientTeam || detectDepartment(args.subject, args.description);
-      const deptHeadEmail = getDepartmentHeadEmail(recipientTeam);
-      const sendTo = [];
-      if (Array.isArray(args.sendTo)) {
-        for (const cc of args.sendTo) {
-          if (typeof cc === "string" && !cc.includes("@")) sendTo.push(cc);
-        }
-      }
-      if (deptHeadEmail) sendTo.push(deptHeadEmail);
       const ticket = {
         ticketRef: generateTicketRef(),
         status: "CREATED",
         createdAt: new Date().toISOString(),
-        requester: employeeData,
-        recipientTeam,
+        requester: {
+          employeeNumber: employeeData.employeeNumber,
+          name: employeeData.name,
+          department: employeeData.department,
+          team: employeeData.team,
+        },
       };
-      createTaskTicket({ ...args, recipientTeam, sendTo }, ticket);
-      sendTicketMail({ ...args, recipientTeam, sendTo }, ticket);
+      // Create task and send mail asynchronously
+      createTaskTicket(args, ticket);
+      sendTicketMail(args, ticket);
       return ticket;
     }
-
     default:
       return { result: true };
   }
@@ -378,77 +349,95 @@ async function handleToolCalls(
   response: any,
   addBreadcrumb?: (title: string, data?: any) => void
 ) {
-  let current = response;
-  let guard = 0;
+  let currentResponse = response;
 
-  while (guard++ < 6) {
-    if (current?.error) return { error: true };
-
-    const calls = (current.output ?? []).filter(
-      (i: any) => i.type === "function_call"
-    );
-
-    if (!calls.length) {
-      return (current.output ?? [])
-        .filter((i: any) => i.type === "message")
-        .flatMap((m: any) =>
-          (m.content ?? [])
-            .filter((c: any) => c.type === "output_text")
-            .map((c: any) => c.text)
-        )
-        .join("\n");
+  while (true) {
+    if (currentResponse?.error) {
+      return { error: "Something went wrong." } as any;
     }
 
-    for (const call of calls) {
-      const result = getToolResponse(
-        call.name,
-        JSON.parse(call.arguments || "{}")
+    const outputItems: any[] = currentResponse.output ?? [];
+    const functionCalls = outputItems.filter(
+      (item) => item.type === "function_call"
+    );
+
+    if (functionCalls.length === 0) {
+      const assistantMessages = outputItems.filter(
+        (item) => item.type === "message"
       );
 
-      addBreadcrumb?.(`[tool] ${call.name}`, result);
+      const finalText = assistantMessages
+        .map((msg: any) => {
+          const contentArr = msg.content ?? [];
+          return contentArr
+            .filter((c: any) => c.type === "output_text")
+            .map((c: any) => c.text)
+            .join("");
+        })
+        .join("\n");
 
+      return finalText;
+    }
+    for (const toolCall of functionCalls) {
+      const fName = toolCall.name;
+      const args = JSON.parse(toolCall.arguments || "{}");
+      const toolRes = getToolResponse(fName, args);
+      if (addBreadcrumb) {
+        addBreadcrumb(`[supervisorAgent] function call: ${fName}`, args);
+      }
+      if (addBreadcrumb) {
+        addBreadcrumb(
+          `[supervisorAgent] function call result: ${fName}`,
+          toolRes
+        );
+      }
       body.input.push(
         {
           type: "function_call",
-          call_id: call.call_id,
-          name: call.name,
-          arguments: call.arguments,
+          call_id: toolCall.call_id,
+          name: toolCall.name,
+          arguments: toolCall.arguments,
         },
         {
           type: "function_call_output",
-          call_id: call.call_id,
-          output: JSON.stringify(result),
+          call_id: toolCall.call_id,
+          output: JSON.stringify(toolRes),
         }
       );
     }
-
-    current = await fetchResponsesMessage(body);
+    currentResponse = await fetchResponsesMessage(body);
   }
-
-  throw new Error("Tool loop exceeded limit");
 }
 
-/**
- * =========================
- * SUPERVISOR AGENT TOOL
- * =========================
- */
 export const getNextResponseFromCoralAiAgent = tool({
   name: "getNextResponseFromCoralAiAgent",
-  description: "Returns next supervisor-guided response",
+  description:
+    "Determines the next response whenever the agent faces a non-trivial decision, produced by a highly intelligent supervisor agent. Returns a message describing what to do next.",
   parameters: {
     type: "object",
     properties: {
-      relevantContextFromLastUserMessage: { type: "string" },
+      relevantContextFromLastUserMessage: {
+        type: "string",
+        description:
+          "Key information from the user described in their most recent message. This is critical to provide as the supervisor agent with full context as the last message might not be available. Okay to omit if the user message didn't add any new information.",
+      },
     },
     required: ["relevantContextFromLastUserMessage"],
     additionalProperties: false,
   },
-
   execute: async (input, details) => {
-    const history: RealtimeItem[] = (details?.context as any)?.history ?? [];
+    const { relevantContextFromLastUserMessage } = input as {
+      relevantContextFromLastUserMessage: string;
+    };
 
-    const body = {
+    const addBreadcrumb = (details?.context as any)?.addTranscriptBreadcrumb as
+      | ((title: string, data?: any) => void)
+      | undefined;
+
+    const history: RealtimeItem[] = (details?.context as any)?.history ?? [];
+    const filteredLogs = history.filter((log) => log.type === "message");
+
+    const body: any = {
       model: "gpt-4.1",
       input: [
         {
@@ -459,21 +448,27 @@ export const getNextResponseFromCoralAiAgent = tool({
         {
           type: "message",
           role: "user",
-          content: JSON.stringify(history, null, 2),
+          content: `==== Conversation History ====
+          ${JSON.stringify(filteredLogs, null, 2)}
+          
+          ==== Relevant Context From Last User Message ===
+          ${relevantContextFromLastUserMessage}
+          `,
         },
       ],
       tools: supervisorAgentTools,
     };
 
     const response = await fetchResponsesMessage(body);
-    if (response?.error) return { error: true };
+    if (response.error) {
+      return { error: "Something went wrong." };
+    }
 
-    const finalText = await handleToolCalls(
-      body,
-      response,
-      (details?.context as any)?.addTranscriptBreadcrumb
-    );
+    const finalText = await handleToolCalls(body, response, addBreadcrumb);
+    if ((finalText as any)?.error) {
+      return { error: "Something went wrong." };
+    }
 
-    return { nextResponse: finalText };
+    return { nextResponse: finalText as string };
   },
 });
