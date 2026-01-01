@@ -124,6 +124,15 @@ Open the dashboard at `http://localhost:3000` (or configured port).
 - Optional: InfluxDB / PostgreSQL for telemetry and session storage
 - Optional: TLS certificate / reverse proxy for secure deployment
 
+### Local HTTPS (TLS)
+
+This repo includes a custom HTTPS entrypoint (`server.js`). By default it uses `public/wss.pem` as both the TLS key and certificate.
+
+You can override this via `.env`:
+
+- `TLS_PEM_PATH` (single PEM used for both key+cert), or
+- `TLS_KEY_PATH` + `TLS_CERT_PATH` (separate PEM files; both required)
+
 ---
 
 ## Configuration
