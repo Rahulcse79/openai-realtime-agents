@@ -258,10 +258,13 @@ function detectService(text: string): string | null {
   if (hints && typeof hints === "object") {
     for (const [phrase, serviceId] of Object.entries(hints)) {
       if (typeof phrase !== "string" || typeof serviceId !== "string") continue;
-      const p = normalizeText(phrase);
-      if (!p) continue;
+      // Normalize routing phrases in both ascii-only and unicode-preserving forms.
+      // This matters for Gurmukhi/Devanagari/Shahmukhi hints that would otherwise be stripped by normalizeText().
+      const pAscii = normalizeText(phrase);
+      const p = normalizeTextUnicode(phrase);
+      if (!p && !pAscii) continue;
       // Match against both ascii-only and unicode-preserving normalized strings.
-      if (t.includes(p) || tAscii.includes(p)) return serviceId;
+      if ((p && t.includes(p)) || (pAscii && tAscii.includes(pAscii))) return serviceId;
     }
   }
 
@@ -300,6 +303,22 @@ function detectService(text: string): string | null {
     return "MS-AC";
 
   // 4) Multilingual safety-net (Hindi / Urdu common phrases)
+  // Spa / Massage
+  if (
+    t.includes("मसाज") ||
+    t.includes("मसाज़") ||
+    t.includes("मालिश") ||
+    t.includes("स्पा") ||
+    t.includes("सपा") ||
+    t.includes("ਸਪਾ") ||
+    t.includes("ਮਸਾਜ") ||
+    t.includes("ਮਸਾਜ਼") ||
+    t.includes("سپا") ||
+    t.includes("مساج")
+  ) {
+    return "LS-SPA";
+  }
+
   // Cleaning / housekeeping
   if (
     t.includes("साफ") ||
@@ -328,6 +347,33 @@ function detectService(text: string): string | null {
   }
 
   return null;
+}
+
+function detectUserLanguage(text: string): "hi" | "pa-guru" | "ur" | "en" {
+  const t = String(text ?? "");
+
+  // Gurmukhi (Punjabi)
+  if (/[\u0A00-\u0A7F]/.test(t)) return "pa-guru";
+  // Arabic script (Urdu)
+  if (/[\u0600-\u06FF]/.test(t)) return "ur";
+  // Devanagari (Hindi)
+  if (/[\u0900-\u097F]/.test(t)) return "hi";
+
+  return "en";
+}
+
+function getLocalizedUnknownServiceMessage(userText: string) {
+  const lang = detectUserLanguage(userText);
+  if (lang === "hi") {
+    return "माफ़ कीजिए, मैं इस समय आपकी सेवा को सही तौर पर पहचान नहीं पाया। अगर आपको और सहायता चाहिए, तो मैं आपको हमारे होटल स्टाफ से जोड़ सकता हूँ।";
+  }
+  if (lang === "pa-guru") {
+    return "ਮੈਨੂੰ ਅਫ਼ਸੋਸ ਹੈ, ਮੈਂ ਇਸ ਸਮੇਂ ਤੁਹਾਡੀ ਮੰਗ ਨੂੰ ਸਹੀ ਤਰ੍ਹਾਂ ਪਛਾਣ ਨਹੀਂ ਕਰ ਸਕਿਆ। ਜੇ ਤੁਹਾਨੂੰ ਹੋਰ ਸਹਾਇਤਾ ਚਾਹੀਦੀ ਹੈ, ਤਾਂ ਮੈਂ ਤੁਹਾਨੂੰ ਸਾਡੇ ਹੋਟਲ ਸਟਾਫ ਨਾਲ ਜੋੜ ਸਕਦਾ ਹਾਂ।";
+  }
+  if (lang === "ur") {
+    return "معاف کیجیے، میں اس وقت آپ کی درخواست کی درست شناخت نہیں کر سکا۔ اگر آپ کو مزید مدد چاہیے تو میں آپ کو ہمارے ہوٹل اسٹاف سے جوڑ سکتا ہوں۔";
+  }
+  return "I'm sorry, I couldn't identify the requested service. If you need more assistance, I can connect you to our hotel staff.";
 }
 
 function assignStaff(floor: number, serviceType: string) {
@@ -363,6 +409,11 @@ function assignStaff(floor: number, serviceType: string) {
     );
   }
 
+  // Spa requests are typically handled by the concierge/front desk if an on-floor spa role isn't modeled.
+  if (type === "spa") {
+    return candidates[0] || null;
+  }
+
   return candidates[0] || null;
 }
 
@@ -395,8 +446,7 @@ function getToolResponse(name: string, args: any) {
   const serviceId = detectService(args.serviceText || "");
   if (!serviceId) {
     return {
-      response:
-        "I'm sorry, I couldn't identify the requested service. If you need more assistance, I can connect you to our hotel staff.",
+      response: getLocalizedUnknownServiceMessage(args.serviceText || ""),
     };
   }
 
@@ -433,8 +483,14 @@ function getToolResponse(name: string, args: any) {
 
   const ticketRef = generateTicketRef();
 
+  const spaBookingEmail = (hotelTaj as any)?.services?.luxuryServices?.spa?.bookingEmail;
+  const primaryTo =
+    service.itemId === "LS-SPA" && typeof spaBookingEmail === "string" && spaBookingEmail
+      ? spaBookingEmail
+      : staff.email ?? service.serviceEmail;
+
   sendMail({
-    to: [staff.email ?? service.serviceEmail],
+    to: [primaryTo].filter(Boolean),
     cc: [service.serviceEmail, floor.floorEmail].filter(Boolean),
     subject: `Hotel Taj Service Ticket ${ticketRef}`,
     username: (currentStay as any)?.members?.[0]?.preferredName || "Guest",
