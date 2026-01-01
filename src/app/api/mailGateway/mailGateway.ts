@@ -1,7 +1,5 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
 
 export type SendMailResult = {
   accepted?: string[];

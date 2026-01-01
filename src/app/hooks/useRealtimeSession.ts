@@ -1,14 +1,10 @@
-import { useCallback, useRef, useState, useEffect } from 'react';
-import {
-  RealtimeSession,
-  RealtimeAgent,
-  OpenAIRealtimeWebRTC,
-} from '@openai/agents/realtime';
+import { useCallback, useRef, useState, useEffect } from "react";
+import type { RealtimeSession, RealtimeAgent } from "@openai/agents/realtime";
 
-import { applyCodecPreferences } from '../lib/codecUtils';
-import { useEvent } from '../contexts/EventContext';
-import { useHandleSessionHistory } from './useHandleSessionHistory';
-import { SessionStatus } from '../types';
+import { applyCodecPreferences } from "../lib/codecUtils";
+import { useEvent } from "../contexts/EventContext";
+import { useHandleSessionHistory } from "./useHandleSessionHistory";
+import { SessionStatus } from "../types";
 
 export interface RealtimeSessionCallbacks {
   onConnectionChange?: (status: SessionStatus) => void;
@@ -25,9 +21,7 @@ export interface ConnectOptions {
 
 export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
   const sessionRef = useRef<RealtimeSession | null>(null);
-  const [status, setStatus] = useState<
-    SessionStatus
-  >('DISCONNECTED');
+  const [status, setStatus] = useState<SessionStatus>("DISCONNECTED");
   const { logClientEvent } = useEvent();
 
   const updateStatus = useCallback(
@@ -36,7 +30,7 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
       callbacks.onConnectionChange?.(s);
       logClientEvent({}, s);
     },
-    [callbacks],
+    [callbacks]
   );
 
   const { logServerEvent } = useEvent();
@@ -44,7 +38,6 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
   const historyHandlers = useHandleSessionHistory().current;
 
   function handleTransportEvent(event: any) {
-    // Handle additional server events that aren't managed by the session
     switch (event.type) {
       case "conversation.item.input_audio_transcription.completed": {
         historyHandlers.handleTranscriptionCompleted(event);
@@ -61,23 +54,20 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
       default: {
         logServerEvent(event);
         break;
-      } 
+      }
     }
   }
 
   const codecParamRef = useRef<string>(
-    (typeof window !== 'undefined'
-      ? (new URLSearchParams(window.location.search).get('codec') ?? 'opus')
-      : 'opus')
-      .toLowerCase(),
+    (typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("codec") ?? "opus"
+      : "opus"
+    ).toLowerCase()
   );
 
-  // Wrapper to pass current codec param.
-  // This lets you use the codec selector in the UI to force narrow-band (8 kHz) codecs to
-  // simulate how the voice agent sounds over a PSTN/SIP phone call.
   const applyCodec = useCallback(
     (pc: RTCPeerConnection) => applyCodecPreferences(pc, codecParamRef.current),
-    [],
+    []
   );
 
   const handleAgentHandoff = (item: any) => {
@@ -89,7 +79,6 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
 
   useEffect(() => {
     if (sessionRef.current) {
-      // Log server errors
       sessionRef.current.on("error", (...args: any[]) => {
         logServerEvent({
           type: "error",
@@ -97,15 +86,27 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
         });
       });
 
-      // history events
       sessionRef.current.on("agent_handoff", handleAgentHandoff);
-      sessionRef.current.on("agent_tool_start", historyHandlers.handleAgentToolStart);
-      sessionRef.current.on("agent_tool_end", historyHandlers.handleAgentToolEnd);
-      sessionRef.current.on("history_updated", historyHandlers.handleHistoryUpdated);
-      sessionRef.current.on("history_added", historyHandlers.handleHistoryAdded);
-      sessionRef.current.on("guardrail_tripped", historyHandlers.handleGuardrailTripped);
-
-      // additional transport events
+      sessionRef.current.on(
+        "agent_tool_start",
+        historyHandlers.handleAgentToolStart
+      );
+      sessionRef.current.on(
+        "agent_tool_end",
+        historyHandlers.handleAgentToolEnd
+      );
+      sessionRef.current.on(
+        "history_updated",
+        historyHandlers.handleHistoryUpdated
+      );
+      sessionRef.current.on(
+        "history_added",
+        historyHandlers.handleHistoryAdded
+      );
+      sessionRef.current.on(
+        "guardrail_tripped",
+        historyHandlers.handleGuardrailTripped
+      );
       sessionRef.current.on("transport_event", handleTransportEvent);
     }
   }, [sessionRef.current]);
@@ -118,27 +119,47 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
       extraContext,
       outputGuardrails,
     }: ConnectOptions) => {
-      if (sessionRef.current) return; // already connected
+      if (sessionRef.current) return;
 
-      updateStatus('CONNECTING');
+      if (typeof window === "undefined") {
+        throw new Error("RealtimeSession can only connect in the browser");
+      }
+      if (typeof (window as any).RTCPeerConnection === "undefined") {
+        throw new Error(
+          "WebRTC is not available in this browser (RTCPeerConnection missing)"
+        );
+      }
+      if (
+        typeof navigator === "undefined" ||
+        !navigator.mediaDevices ||
+        typeof navigator.mediaDevices.getUserMedia !== "function"
+      ) {
+        throw new Error(
+          "Audio input is not available in this environment (getUserMedia missing)"
+        );
+      }
+
+      updateStatus("CONNECTING");
 
       const ek = await getEphemeralKey();
       const rootAgent = initialAgents[0];
 
+      const { RealtimeSession, OpenAIRealtimeWebRTC } = await import(
+        "@openai/agents/realtime"
+      );
+
       sessionRef.current = new RealtimeSession(rootAgent, {
         transport: new OpenAIRealtimeWebRTC({
           audioElement,
-          // Set preferred codec before offer creation
           changePeerConnection: async (pc: RTCPeerConnection) => {
             applyCodec(pc);
             return pc;
           },
         }),
-        model: 'gpt-4o-realtime-preview-2025-06-03',
+        model: "gpt-4o-realtime-preview-2025-06-03",
         config: {
           inputAudioTranscription: {
-            // Use multilingual transcription so users can speak Hindi/English.
-            model: 'gpt-4o-mini-transcribe',
+            model: "gpt-4o-mini-transcribe",
           },
         },
         outputGuardrails: outputGuardrails ?? [],
@@ -146,27 +167,25 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
       });
 
       await sessionRef.current.connect({ apiKey: ek });
-      updateStatus('CONNECTED');
+      updateStatus("CONNECTED");
     },
-    [callbacks, updateStatus],
+    [callbacks, updateStatus]
   );
 
   const disconnect = useCallback(() => {
     sessionRef.current?.close();
     sessionRef.current = null;
-    updateStatus('DISCONNECTED');
+    updateStatus("DISCONNECTED");
   }, [updateStatus]);
 
   const assertconnected = () => {
-    if (!sessionRef.current) throw new Error('RealtimeSession not connected');
+    if (!sessionRef.current) throw new Error("RealtimeSession not connected");
   };
-
-  /* ----------------------- message helpers ------------------------- */
 
   const interrupt = useCallback(() => {
     sessionRef.current?.interrupt();
   }, []);
-  
+
   const sendUserText = useCallback((text: string) => {
     assertconnected();
     sessionRef.current!.sendMessage(text);
@@ -182,13 +201,17 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
 
   const pushToTalkStart = useCallback(() => {
     if (!sessionRef.current) return;
-    sessionRef.current.transport.sendEvent({ type: 'input_audio_buffer.clear' } as any);
+    sessionRef.current.transport.sendEvent({
+      type: "input_audio_buffer.clear",
+    } as any);
   }, []);
 
   const pushToTalkStop = useCallback(() => {
     if (!sessionRef.current) return;
-    sessionRef.current.transport.sendEvent({ type: 'input_audio_buffer.commit' } as any);
-    sessionRef.current.transport.sendEvent({ type: 'response.create' } as any);
+    sessionRef.current.transport.sendEvent({
+      type: "input_audio_buffer.commit",
+    } as any);
+    sessionRef.current.transport.sendEvent({ type: "response.create" } as any);
   }, []);
 
   return {

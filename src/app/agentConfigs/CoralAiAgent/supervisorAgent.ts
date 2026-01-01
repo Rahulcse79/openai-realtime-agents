@@ -1,6 +1,6 @@
 import { RealtimeItem, tool } from "@openai/agents/realtime";
-
-import employeeData from "../../Data/employeeData.json";
+import employeeData from "../../hardCodeData/coralTicketing/employeeData.json";
+import topicData from "../../hardCodeData/coralTicketing/topicData.json";
 
 export const supervisorAgentInstructions = `You are an expert customer service supervisor agent, tasked with providing real-time guidance to a more junior agent that's chatting directly with the customer. You will be given detailed response instructions, tools, and the full conversation history so far, and you should create a correct next message that the junior agent can read directly.
 
@@ -14,36 +14,36 @@ You are a helpful internal IVRS supervisor agent working for Coral Telecom, help
 
 ## Primary Use Case: Employee Ticket Creation (CRITICAL)
 When the employee wants to create a ticket (or you infer that intent), follow this flow and keep it voice-friendly:
-1) Ask for ticket subject (short)
-2) Ask for issue description (detail)
-3) Ask which team/department should receive it
-4) Ask for optional CC list (names or employee numbers) and confirm if none
-5) Read back a short summary and ask for confirmation
-6) After confirmation, call createEmployeeTicket and then confirm success with the ticket reference
+1) Infer a short ticket subject from the employee's issue (do NOT ask for a subject)
+2) Ask for issue description (detail) if not already clear
+3) Automatically detect the receiving team/department using ONLY department names from TopicData.json (do NOT ask the employee for the department)
+4) Ask for optional send-to list (names or employee numbers). If none, treat it as empty.
+5) Call createEmployeeTicket as soon as you have the required fields (subject you inferred, description, recipientTeam you detected)
+6) Confirm success with the ticket reference (do NOT ask for confirmation)
 
 ## Language Rules (CRITICAL — follow exactly)
 You are a multilingual IVRS voice assistant.
 
-### 1) Choose a single conversation language
-- Determine the caller's language from the FIRST clear, full sentence the caller says.
-- Set that as the **Conversation Language**.
+### 1) Reply in the user's current language (language mirroring)
+- Determine the caller's language from their MOST RECENT clear message.
+- Reply ONLY in that same language.
+- Do NOT mention language detection.
 
-### 2) Persist it across the whole conversation
-- For ALL of your replies, use ONLY the Conversation Language.
-- Do NOT switch languages just because the caller says a single word in another language.
+### 2) Do not mix languages
 - Do NOT mix languages in a single response.
 
-### 3) Switch languages only on an explicit/clear user switch
-Switch the Conversation Language ONLY if the caller does one of these:
-- Speaks a full sentence in a different language, OR
-- Explicitly requests a different language (e.g., "Speak Hindi", "Punjabi please"), OR
-- Repeatedly continues in a different language across multiple turns.
+### 3) Mixed-language messages
+- If the caller uses multiple languages in the same message, reply in the dominant one.
 
 ### 4) Short / ambiguous user turns
-- If the caller says very short/ambiguous terms like "yes", "no", "ok", names, phone numbers, OTPs, account numbers, or addresses, DO NOT treat that as a language switch.
-- Continue using the current Conversation Language.
+- If the caller's latest turn is very short/ambiguous (e.g., "yes", "no", "ok", names, phone numbers, OTPs, account numbers, or addresses), do NOT treat it as a language change.
+- In that case, continue using the language from the most recent clear message.
 
-### 5) Translation
+### 5) Switching languages
+- If the caller starts speaking a clear full sentence in a different language, mirror that language starting immediately.
+- If the caller explicitly requests a different language (e.g., "Speak Hindi", "Punjabi please"), switch to that language.
+
+### 6) Translation
 - Do NOT translate unless the caller explicitly asks for translation.
 
 # Instructions
@@ -260,6 +260,46 @@ async function fetchResponsesMessage(body: any) {
   return completion;
 }
 
+async function translateToEnglish(text: unknown): Promise<string> {
+  const input = String(text ?? "").trim();
+  if (!input) return "";
+
+  // Keep prompt short and deterministic—only translate when needed; otherwise return the same.
+  const res = await fetchResponsesMessage({
+    model: "gpt-4.1-mini",
+    input: [
+      {
+        type: "message",
+        role: "system",
+        content:
+          "You translate user-provided text to English for internal ticketing. " +
+          "Return ONLY the translated English text, with no quotes, no extra commentary. " +
+          "If the input is already English, return it unchanged.",
+      },
+      {
+        type: "message",
+        role: "user",
+        content: input,
+      },
+    ],
+  });
+
+  const outputItems: any[] = res?.output ?? [];
+  const assistantMessages = outputItems.filter((item) => item.type === "message");
+  const finalText = assistantMessages
+    .map((msg: any) => {
+      const contentArr = msg.content ?? [];
+      return contentArr
+        .filter((c: any) => c.type === "output_text")
+        .map((c: any) => c.text)
+        .join("");
+    })
+    .join("\n")
+    .trim();
+
+  return finalText || input;
+}
+
 async function createTaskTicket(args: any, ticket: any) {
   try {
     const taskPayload = {
@@ -274,7 +314,7 @@ async function createTaskTicket(args: any, ticket: any) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": token,
+        Authorization: token,
       },
       body: JSON.stringify(taskPayload),
     });
@@ -294,7 +334,26 @@ async function createTaskTicket(args: any, ticket: any) {
 }
 
 async function sendTicketMail(args: any, ticket: any) {
-  if (!args?.sendTo || args.sendTo.length === 0) return;
+  const baseCc = Array.isArray(topicData?.ccMembersEmails)
+    ? topicData.ccMembersEmails
+    : [];
+
+  const recipientTeam: string =
+    typeof args?.recipientTeam === "string" ? args.recipientTeam : "";
+  const departmentHeadEmail = getDepartmentHeadEmail(recipientTeam);
+
+  const userSendTo = Array.isArray(args?.sendTo) ? args.sendTo : [];
+  const toList = Array.from(new Set(userSendTo)).filter(Boolean);
+  const ccList = Array.from(new Set([...baseCc, departmentHeadEmail])).filter(
+    Boolean
+  );
+
+  const finalTo = (toList.length > 0 ? toList : ccList).filter(Boolean);
+  const finalCc = toList.length > 0 ? ccList : [];
+
+  if (finalTo.length === 0) return;
+  const issueTitleEn = await translateToEnglish(args?.subject);
+  const issueDetailsEn = await translateToEnglish(args?.description);
 
   try {
     await fetch("/api/mailGateway", {
@@ -303,19 +362,62 @@ async function sendTicketMail(args: any, ticket: any) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        to: args.sendTo,
+        to: finalTo,
+        cc: finalCc,
         username: ticket.requester.name,
         department: ticket.requester.department,
         ticketNo: ticket.ticketRef,
-        issueTitle: args.subject,
-        issueDetails: args.description,
+        issueTitle: issueTitleEn,
+        issueDetails: issueDetailsEn,
       }),
     });
 
-    console.log("[MAIL] Send to notification sent:", args.sendTo.join(", "));
+    console.log(
+      "[MAIL] Ticket email sent:",
+      `to=${finalTo.join(", ")}`,
+      finalCc.length ? `cc=${finalCc.join(", ")}` : ""
+    );
   } catch (err) {
     console.error("[MAIL] Failed to send send to mail:", err);
   }
+}
+
+function inferRecipientTeamFromTopicData(text: string): string | null {
+  const departments = (topicData as any)?.departments;
+  if (!Array.isArray(departments) || departments.length === 0) return null;
+
+  const haystack = (text || "").toLowerCase();
+  for (const d of departments) {
+    const name = String(d?.name ?? "").trim();
+    if (!name) continue;
+    if (haystack.includes(name.toLowerCase())) return name;
+  }
+  return null;
+}
+
+function normalizeDepartmentName(name: string): string {
+  return String(name || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function getDepartmentHeadEmail(recipientTeam: string): string {
+  const departments = (topicData as any)?.departments;
+  if (!Array.isArray(departments) || departments.length === 0) return "";
+
+  const wanted = normalizeDepartmentName(recipientTeam);
+  if (!wanted) return "";
+
+  const exact = departments.find(
+    (d: any) => normalizeDepartmentName(d?.name) === wanted
+  );
+  return String(exact?.headEmail ?? "").trim();
+}
+
+function resolveRecipientTeamFromText(text: string): string {
+  const inferred = inferRecipientTeamFromTopicData(text);
+  return inferred || "All support";
 }
 
 function getToolResponse(fName: string, args: any) {
@@ -323,6 +425,13 @@ function getToolResponse(fName: string, args: any) {
     case "getEmployeeProfile":
       return employeeData;
     case "createEmployeeTicket": {
+      // Ensure recipientTeam is ALWAYS set (fallback to "All support").
+      args.recipientTeam = resolveRecipientTeamFromText(
+        `${args?.recipientTeam ?? ""} ${args?.subject ?? ""} ${
+          args?.description ?? ""
+        }`
+      );
+
       const ticket = {
         ticketRef: generateTicketRef(),
         status: "CREATED",

@@ -1,0 +1,755 @@
+{
+  "hotel": {
+    "id": "taj-001",
+    "name": "The Grand Taj Hotel",
+    "brand": "Taj Hotels",
+    "classification": "Luxury 5-Star",
+    "timezone": "Asia/Kolkata",
+    "currency": "INR",
+    "address": {
+      "street": "1 Palace Road",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "country": "India",
+      "postalCode": "400001",
+      "geo": {
+        "lat": 18.921984,
+        "lng": 72.833452
+      }
+    },
+    "contact": {
+      "phone": "+91-22-40001234",
+      "email": "rahul.singh@coraltele.com",
+      "reservationsEmail": "rahul.singh@coraltele.com",
+      "supportEmail": "rahul.singh@coraltele.com",
+      "emergency": "+91-22-40009999",
+      "website": "https://example.com",
+      "whatsapp": "+91-22-40001234",
+      "social": {
+        "instagram": "https://example.com",
+        "x": "https://example.com"
+      }
+    },
+    "policies": {
+      "checkInTime": "15:00",
+      "checkOutTime": "12:00",
+      "smokingPolicy": "Non-smoking rooms. Designated smoking areas available.",
+      "petPolicy": "Pets are not permitted.",
+      "cancellation": "Standard cancellation policy applies based on rate plan.",
+      "idRequirement": "Valid government-issued ID required at check-in."
+    },
+    "amenities": [
+      "24x7 Front Desk",
+      "Concierge",
+      "High-Speed Wi‑Fi",
+      "Valet Parking",
+      "Fitness Center",
+      "Swimming Pool",
+      "Spa",
+      "Business Center"
+    ],
+    "propertyProfile": {
+      "shortDescription": "A luxury five-star city hotel in South Mumbai with refined hospitality and premium services.",
+      "longDescription": "The Grand Taj Hotel offers a luxury stay experience with curated dining, wellness facilities, and attentive in-room service. This dataset is designed for AI concierge routing, ticketing, and fast voice-friendly confirmations.",
+      "languagesSpoken": ["English", "Hindi", "Marathi", "Tamil", "Punjabi"],
+      "guestSupport": {
+        "frontDeskEmail": "rahul.singh@coraltele.com",
+        "conciergeEmail": "rahul.singh@coraltele.com",
+        "itHelpdeskEmail": "rahul.singh@coraltele.com",
+        "lostAndFoundEmail": "rahul.singh@coraltele.com"
+      }
+    }
+  },
+
+  "floors": [
+    {
+      "floorNumber": 1,
+      "name": "Deluxe Floor",
+      "floorEmail": "rahul.singh@coraltele.com",
+      "serviceZones": ["Housekeeping", "RoomService"],
+      "priority": "Standard",
+      "quietHours": {
+        "start": "22:00",
+        "end": "07:00"
+      }
+    },
+    {
+      "floorNumber": 2,
+      "name": "Executive Floor",
+      "floorEmail": "rahul.singh@coraltele.com",
+      "serviceZones": ["Housekeeping", "ButlerService"],
+      "priority": "High",
+      "quietHours": {
+        "start": "22:00",
+        "end": "07:00"
+      }
+    },
+    {
+      "floorNumber": 10,
+      "name": "Presidential Floor",
+      "floorEmail": "rahul.singh@coraltele.com",
+      "serviceZones": ["PrivateButler", "Security"],
+      "priority": "VIP",
+      "quietHours": {
+        "start": "23:00",
+        "end": "08:00"
+      }
+    }
+  ],
+
+  "rooms": [
+    {
+      "roomId": "M101",
+      "floor": 1,
+      "roomType": "Deluxe Room",
+      "roomEmailAlias": "rahul.singh@coraltele.com",
+      "iotEnabled": true,
+      "occupancy": {
+        "maxAdults": 2,
+        "maxChildren": 1
+      },
+      "bed": "King",
+      "accessibility": {
+        "wheelchairAccessible": false
+      },
+      "inRoomDevices": {
+        "thermostat": true,
+        "smartTV": true,
+        "lighting": true,
+        "doNotDisturb": true
+      },
+      "guestExperience": {
+        "welcomeNote": "Welcome to The Grand Taj Hotel.",
+        "pillowMenuAvailable": true,
+        "turnDownService": true
+      }
+    },
+    {
+      "roomId": "M102",
+      "floor": 1,
+      "roomType": "Deluxe Room",
+      "roomEmailAlias": "rahul.singh@coraltele.com",
+      "iotEnabled": true,
+      "occupancy": { "maxAdults": 2, "maxChildren": 1 },
+      "bed": "Twin",
+      "accessibility": { "wheelchairAccessible": true },
+      "inRoomDevices": {
+        "thermostat": true,
+        "smartTV": true,
+        "lighting": true,
+        "doNotDisturb": true
+      },
+      "guestExperience": {
+        "welcomeNote": "Welcome to The Grand Taj Hotel.",
+        "pillowMenuAvailable": true,
+        "turnDownService": true
+      }
+    },
+    {
+      "roomId": "E201",
+      "floor": 2,
+      "roomType": "Executive Room",
+      "roomEmailAlias": "rahul.singh@coraltele.com",
+      "iotEnabled": true,
+      "occupancy": { "maxAdults": 2, "maxChildren": 1 },
+      "bed": "King",
+      "accessibility": { "wheelchairAccessible": false },
+      "inRoomDevices": {
+        "thermostat": true,
+        "smartTV": true,
+        "lighting": true,
+        "doNotDisturb": true
+      },
+      "guestExperience": {
+        "welcomeNote": "Welcome to Executive Floor.",
+        "pillowMenuAvailable": true,
+        "turnDownService": true
+      }
+    },
+    {
+      "roomId": "P1001",
+      "floor": 10,
+      "roomType": "Presidential Suite",
+      "roomEmailAlias": "rahul.singh@coraltele.com",
+      "iotEnabled": true,
+      "occupancy": { "maxAdults": 3, "maxChildren": 2 },
+      "bed": "King",
+      "accessibility": { "wheelchairAccessible": false },
+      "inRoomDevices": {
+        "thermostat": true,
+        "smartTV": true,
+        "lighting": true,
+        "doNotDisturb": true
+      },
+      "guestExperience": {
+        "welcomeNote": "Welcome to the Presidential Floor.",
+        "pillowMenuAvailable": true,
+        "turnDownService": true
+      }
+    }
+  ],
+
+  "roomTypes": [
+    {
+      "name": "Deluxe Room",
+      "highlights": ["City view", "Luxury bath amenities", "High-speed Wi‑Fi"],
+      "typicalSizeSqFt": 350,
+      "bathroom": ["Rain shower", "Luxury toiletries"],
+      "inRoom": ["Smart TV", "Mini bar", "Tea/Coffee maker", "In-room safe"],
+      "maxOccupancy": { "adults": 2, "children": 1 }
+    },
+    {
+      "name": "Executive Room",
+      "highlights": ["Premium floor access", "Quiet floor", "Priority service"],
+      "typicalSizeSqFt": 420,
+      "bathroom": ["Rain shower", "Luxury toiletries"],
+      "inRoom": ["Smart TV", "Mini bar", "Tea/Coffee maker", "In-room safe"],
+      "maxOccupancy": { "adults": 2, "children": 1 }
+    },
+    {
+      "name": "Presidential Suite",
+      "highlights": [
+        "Dedicated butler",
+        "Private security support",
+        "VIP priority"
+      ],
+      "typicalSizeSqFt": 1200,
+      "bathroom": ["Soaking tub", "Rain shower", "Luxury toiletries"],
+      "inRoom": [
+        "Smart TV",
+        "Mini bar",
+        "Dining area",
+        "Work desk",
+        "In-room safe"
+      ],
+      "maxOccupancy": { "adults": 3, "children": 2 }
+    }
+  ],
+
+  "services": {
+    "aiConcierge": {
+      "email": "rahul.singh@coraltele.com",
+      "channels": ["Voice IVR", "Mobile App", "WhatsApp"],
+      "languages": ["English", "Hindi", "Tamil", "Punjabi"],
+      "handoff": {
+        "fallbackPhone": "+91-22-40001234",
+        "handoffEmail": "rahul.singh@coraltele.com"
+      },
+      "responseStyle": {
+        "tone": "Luxury",
+        "voiceSafe": true,
+        "maxSentenceLength": 18
+      }
+    },
+
+    "roomServiceCatalog": [
+      {
+        "itemId": "RS-ICE",
+        "serviceType": "RoomService",
+        "name": "Ice Cubes",
+        "quantity": "1 Packet",
+        "slaMinutes": 10,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["ice", "chiller"],
+        "available24x7": true
+      },
+      {
+        "itemId": "LS-SPA",
+        "serviceType": "Spa",
+        "name": "Spa Appointment / Massage",
+        "quantity": "1 Booking Request",
+        "slaMinutes": 20,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": [
+          "spa",
+          "massage",
+          "jiva spa",
+          "appointment",
+          "booking",
+          "wellness"
+        ],
+        "available24x7": false
+      },
+      {
+        "itemId": "RS-WATER",
+        "serviceType": "RoomService",
+        "name": "Mineral Water",
+        "quantity": "2 Bottles",
+        "slaMinutes": 5,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["water", "bottle"],
+        "available24x7": true
+      },
+      {
+        "itemId": "HK-TOWELS",
+        "serviceType": "Housekeeping",
+        "name": "Fresh Towels",
+        "quantity": "2 Towels",
+        "slaMinutes": 15,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["towel", "bath"],
+        "available24x7": true
+      },
+      {
+        "itemId": "HK-CLEANING",
+        "serviceType": "Housekeeping",
+        "name": "Room Cleaning",
+        "quantity": "Standard Cleaning",
+        "slaMinutes": 30,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["clean", "housekeeping"],
+        "available24x7": true
+      },
+      {
+        "itemId": "HK-AMENITY-KIT",
+        "serviceType": "Housekeeping",
+        "name": "Dental & Shaving Kit",
+        "quantity": "1 Kit",
+        "slaMinutes": 20,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["toiletries", "kit"],
+        "available24x7": true
+      },
+      {
+        "itemId": "BS-BUTLER-CALL",
+        "serviceType": "ButlerService",
+        "name": "Butler Assistance",
+        "quantity": "1 Visit",
+        "slaMinutes": 10,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["butler", "help"],
+        "available24x7": true
+      },
+      {
+        "itemId": "HK-LAUNDRY",
+        "serviceType": "Housekeeping",
+        "name": "Laundry Pickup",
+        "quantity": "1 Bag (Standard)",
+        "slaMinutes": 20,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["laundry", "clothes"],
+        "available24x7": true
+      },
+      {
+        "itemId": "MS-AC",
+        "serviceType": "Maintenance",
+        "name": "Air Conditioning Check",
+        "quantity": "1 Visit",
+        "slaMinutes": 25,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["ac", "cooling", "temperature"],
+        "available24x7": true
+      },
+      {
+        "itemId": "MS-WIFI",
+        "serviceType": "ITSupport",
+        "name": "Wi‑Fi Support",
+        "quantity": "1 Visit",
+        "slaMinutes": 20,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["wifi", "internet"],
+        "available24x7": true
+      },
+      {
+        "itemId": "FD-LATECHECKOUT",
+        "serviceType": "FrontDesk",
+        "name": "Late Check-out Request",
+        "quantity": "1 Request",
+        "slaMinutes": 15,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["late checkout", "checkout"],
+        "available24x7": true
+      },
+      {
+        "itemId": "FD-EXTRABED",
+        "serviceType": "Housekeeping",
+        "name": "Extra Bed",
+        "quantity": "1 Bed",
+        "slaMinutes": 35,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["extra bed", "bed"],
+        "available24x7": true
+      },
+      {
+        "itemId": "FD-BABYCRIB",
+        "serviceType": "Housekeeping",
+        "name": "Baby Crib",
+        "quantity": "1 Crib",
+        "slaMinutes": 35,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["baby", "crib"],
+        "available24x7": true
+      },
+      {
+        "itemId": "RS-TEA",
+        "serviceType": "RoomService",
+        "name": "Masala Tea",
+        "quantity": "2 Cups",
+        "slaMinutes": 15,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["tea", "chai"],
+        "available24x7": true
+      },
+      {
+        "itemId": "RS-COFFEE",
+        "serviceType": "RoomService",
+        "name": "Coffee",
+        "quantity": "2 Cups",
+        "slaMinutes": 15,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["coffee"],
+        "available24x7": true
+      },
+      {
+        "itemId": "RS-SNACK",
+        "serviceType": "RoomService",
+        "name": "Snack Platter",
+        "quantity": "1 Platter",
+        "slaMinutes": 25,
+        "price": 0,
+        "serviceEmail": "rahul.singh@coraltele.com",
+        "tags": ["snack", "food"],
+        "available24x7": true
+      }
+    ],
+
+    "dining": {
+      "inRoomDining": {
+        "email": "rahul.singh@coraltele.com",
+        "hours": "24x7",
+        "deliverySlaMinutes": 35,
+        "notes": "Allergen requests will be forwarded to the kitchen. Orders may vary by availability."
+      },
+      "kitchens": [
+        {
+          "name": "Main Kitchen",
+          "email": "rahul.singh@coraltele.com",
+          "supports": ["In-room dining", "Banquets", "Restaurants"]
+        },
+        {
+          "name": "Pastry Kitchen",
+          "email": "rahul.singh@coraltele.com",
+          "supports": ["Desserts", "Cakes", "High tea"]
+        }
+      ],
+      "menus": {
+        "breakfast": [
+          {
+            "sku": "BF-IDLI",
+            "name": "Idli Sambar",
+            "isVeg": true,
+            "prepMinutes": 20
+          },
+          {
+            "sku": "BF-PARATHA",
+            "name": "Aloo Paratha",
+            "isVeg": true,
+            "prepMinutes": 25
+          },
+          {
+            "sku": "BF-OMELET",
+            "name": "Cheese Omelet",
+            "isVeg": false,
+            "prepMinutes": 18
+          }
+        ],
+        "allDay": [
+          {
+            "sku": "AD-DAL",
+            "name": "Dal Tadka",
+            "isVeg": true,
+            "prepMinutes": 30
+          },
+          {
+            "sku": "AD-PANEER",
+            "name": "Paneer Butter Masala",
+            "isVeg": true,
+            "prepMinutes": 35
+          },
+          {
+            "sku": "AD-CHICKEN",
+            "name": "Butter Chicken",
+            "isVeg": false,
+            "prepMinutes": 40
+          }
+        ],
+        "beverages": [
+          {
+            "sku": "BV-TEA",
+            "name": "Masala Tea",
+            "isVeg": true,
+            "prepMinutes": 10
+          },
+          {
+            "sku": "BV-COFFEE",
+            "name": "Coffee",
+            "isVeg": true,
+            "prepMinutes": 10
+          }
+        ]
+      }
+    },
+
+    "luxuryServices": {
+      "spa": {
+        "name": "Jiva Spa",
+        "email": "rahul.singh@coraltele.com",
+        "bookingEmail": "rahul.singh@coraltele.com",
+        "hours": {
+          "open": "10:00",
+          "close": "20:00"
+        },
+        "signatureTreatments": [
+          "Abhyanga Massage",
+          "Aromatherapy",
+          "Deep Tissue"
+        ]
+      },
+      "restaurants": [
+        {
+          "name": "Wasabi",
+          "email": "rahul.singh@coraltele.com",
+          "managerEmail": "rahul.singh@coraltele.com",
+          "cuisine": "Japanese",
+          "dressCode": "Smart casual"
+        },
+        {
+          "name": "Shamiana",
+          "email": "rahul.singh@coraltele.com",
+          "managerEmail": "rahul.singh@coraltele.com",
+          "cuisine": "International",
+          "dressCode": "Resort formal"
+        }
+      ],
+      "transport": {
+        "email": "rahul.singh@coraltele.com",
+        "airportPickup": true,
+        "fleet": ["Sedan", "SUV", "Luxury Sedan"],
+        "bookingLeadTimeMinutes": 60
+      }
+    },
+
+    "maintenanceSupport": {
+      "email": "rahul.singh@coraltele.com",
+      "commonIssues": [
+        "AC not cooling",
+        "TV not working",
+        "Wi‑Fi connectivity",
+        "Hot water issues",
+        "Lighting / switches"
+      ]
+    }
+  },
+
+  "facilities": {
+    "pool": {
+      "name": "Swimming Pool",
+      "location": "Facilities Level",
+      "hours": { "open": "06:00", "close": "22:00" },
+      "rules": [
+        "Proper swim attire required",
+        "No glass near pool",
+        "Children must be supervised"
+      ],
+      "email": "rahul.singh@coraltele.com"
+    },
+    "gym": {
+      "name": "Fitness Center",
+      "hours": { "open": "06:00", "close": "22:00" },
+      "email": "rahul.singh@coraltele.com",
+      "equipment": [
+        "Treadmill",
+        "Elliptical",
+        "Free Weights",
+        "Stationary Bike"
+      ]
+    },
+    "businessCenter": {
+      "name": "Business Center",
+      "hours": { "open": "09:00", "close": "20:00" },
+      "email": "rahul.singh@coraltele.com",
+      "services": ["Printing", "Scanning", "Meeting rooms"]
+    },
+    "banquets": {
+      "email": "rahul.singh@coraltele.com",
+      "venues": [
+        {
+          "name": "Grand Ballroom",
+          "capacity": 350,
+          "setupTypes": ["Theatre", "Banquet", "Boardroom"]
+        },
+        {
+          "name": "Sea Lounge Hall",
+          "capacity": 120,
+          "setupTypes": ["Banquet", "Cocktail"]
+        }
+      ]
+    }
+  },
+
+  "localInformation": {
+    "timezone": "Asia/Kolkata",
+    "emergencyNumbers": {
+      "police": "100",
+      "ambulance": "102",
+      "fire": "101"
+    },
+    "nearbyAttractions": [
+      { "name": "Gateway of India", "distanceKm": 1.2, "type": "Landmark" },
+      { "name": "Marine Drive", "distanceKm": 3.8, "type": "Promenade" },
+      { "name": "Colaba Causeway", "distanceKm": 2.0, "type": "Shopping" }
+    ],
+    "transportTips": {
+      "airport": "Chhatrapati Shivaji Maharaj International Airport",
+      "typicalAirportDriveMinutes": 60,
+      "localTaxiNote": "Taxi availability may vary by time and traffic."
+    }
+  },
+
+  "operations": {
+    "staff": [
+      {
+        "staffId": "STF-022",
+        "name": "Raj Gupta",
+        "role": "Room Service Associate",
+        "email": "rahul.singh@coraltele.com",
+        "departmentEmail": "rahul.singh@coraltele.com",
+        "assignedFloors": [1, 2]
+      },
+      {
+        "staffId": "STF-041",
+        "name": "Meera Nair",
+        "role": "Housekeeping Associate",
+        "email": "rahul.singh@coraltele.com",
+        "departmentEmail": "rahul.singh@coraltele.com",
+        "assignedFloors": [1]
+      },
+      {
+        "staffId": "STF-055",
+        "name": "Arjun Singh",
+        "role": "Butler",
+        "email": "rahul.singh@coraltele.com",
+        "departmentEmail": "rahul.singh@coraltele.com",
+        "assignedFloors": [2, 10]
+      },
+      {
+        "staffId": "STF-077",
+        "name": "Kavya Iyer",
+        "role": "Duty Engineer",
+        "email": "rahul.singh@coraltele.com",
+        "departmentEmail": "rahul.singh@coraltele.com",
+        "assignedFloors": [1, 2, 10]
+      }
+    ],
+
+    "escalationMatrix": {
+      "dutyManager": {
+        "name": "John Tuli",
+        "email": "rahul.singh@coraltele.com",
+        "phone": "+91-22-40001234"
+      },
+      "generalManager": {
+        "name": "Navi Tiwari",
+        "email": "rahul.singh@coraltele.com",
+        "phone": "+91-22-40001234"
+      },
+      "security": {
+        "name": "Security Desk",
+        "email": "rahul.singh@coraltele.com",
+        "phone": "+91-22-40009999"
+      }
+    }
+  },
+
+  "aiMlLayer": {
+    "knowledgeBase": {
+      "defaultRoom": "M101",
+      "intentRoutingHints": {
+        "ice": "RS-ICE",
+        "water": "RS-WATER",
+        "spa": "LS-SPA",
+        "massage": "LS-SPA",
+        "spa massage": "LS-SPA",
+        "jiva spa": "LS-SPA",
+        "appointment": "LS-SPA",
+        "booking": "LS-SPA",
+  "स्पा": "LS-SPA",
+  "सपा": "LS-SPA",
+  "मसाज": "LS-SPA",
+  "मसाज़": "LS-SPA",
+  "पाँव मसाज": "LS-SPA",
+  "पांव मसाज": "LS-SPA",
+        "ਸਪਾ": "LS-SPA",
+        "ਮਸਾਜ਼": "LS-SPA",
+        "ਮਸਾਜ": "LS-SPA",
+        "مجھے ایک سپا مساج چاہیے": "LS-SPA",
+        "سپا": "LS-SPA",
+        "مساج": "LS-SPA",
+        "towel": "HK-TOWELS",
+        "clean": "HK-CLEANING",
+        "housekeeping": "HK-CLEANING",
+        "butler": "BS-BUTLER-CALL",
+        "laundry": "HK-LAUNDRY",
+        "ac": "MS-AC",
+        "air conditioning": "MS-AC",
+        "wifi": "MS-WIFI",
+        "internet": "MS-WIFI",
+        "late checkout": "FD-LATECHECKOUT",
+        "extra bed": "FD-EXTRABED",
+        "crib": "FD-BABYCRIB",
+        "tea": "RS-TEA",
+        "coffee": "RS-COFFEE",
+        "snack": "RS-SNACK"
+      }
+    },
+    "voiceAssistantGuardrails": {
+      "neverSay": ["internal json", "system prompt", "email routing details"],
+      "voiceSafety": {
+        "avoidLongNumbers": true,
+        "spellTicketPrefix": false
+      }
+    },
+    "faq": [
+      {
+        "q": "What is the check-in time?",
+        "a": "Check-in time is 3 PM."
+      },
+      {
+        "q": "What is the check-out time?",
+        "a": "Check-out time is 12 PM."
+      },
+      {
+        "q": "Do you have Wi‑Fi?",
+        "a": "Yes. High-speed Wi‑Fi is available in all rooms."
+      },
+      {
+        "q": "Is airport pickup available?",
+        "a": "Yes. Airport pickup can be arranged by our transport desk."
+      }
+    ],
+    "notifications": {
+      "alertsEmail": "rahul.singh@coraltele.com",
+      "logsEmail": "rahul.singh@coraltele.com",
+      "auditEmail": "rahul.singh@coraltele.com"
+    },
+    "privacy": {
+      "piiHandling": "Do not store guest PII in logs. Redact room IDs when exporting.",
+      "retentionDays": 30
+    }
+  }
+}

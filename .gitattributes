@@ -1,2 +1,80 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Text normalization
+* text=auto eol=lf
+
+# Ensure Windows scripts don’t break Linux
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Source code (always text)
+*.ts   text
+*.tsx  text
+*.js   text
+*.jsx  text
+*.json text
+*.yml  text
+*.yaml text
+*.md   text
+*.css  text
+*.scss text
+*.html text
+*.env* text
+
+# Config files
+*.gitignore text
+*.gitattributes text
+*.editorconfig text
+*.prettierrc text
+*.eslintrc text
+
+# Shell / scripts
+*.sh text eol=lf
+*.zsh text eol=lf
+
+# Binary files (never diff)
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary
+*.tar  binary
+*.gz   binary
+*.7z   binary
+
+# Media / Audio / Video
+*.mp3  binary
+*.wav  binary
+*.ogg  binary
+*.mp4  binary
+*.mov  binary
+*.webm binary
+
+# Fonts
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+
+# AI / Model / Data files
+*.onnx binary
+*.pt   binary
+*.pth  binary
+*.h5   binary
+*.npz  binary
+
+# WebRTC / WASM
+*.wasm binary
+
+# Prevent accidental secret diffs
+.env.local  -diff
+.env.prod   -diff
+.env.production -diff
+.env.staging -diff
+
+# Large files (recommended for LFS)
+*.glb filter=lfs diff=lfs merge=lfs -text
+*.gltf filter=lfs diff=lfs merge=lfs -text
+*.fbx filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text

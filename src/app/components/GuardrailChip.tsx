@@ -25,7 +25,6 @@ export function GuardrailChip({
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  // Consolidate state into a single variable: "PENDING", "PASS", or "FAIL"
   const state =
     guardrailResult.status === "IN_PROGRESS"
       ? "PENDING"
@@ -33,7 +32,6 @@ export function GuardrailChip({
       ? "PASS"
       : "FAIL";
 
-  // Variables for icon, label, and styling classes based on state
   let IconComponent;
   let label: string;
   let textColorClass: string;
@@ -63,12 +61,10 @@ export function GuardrailChip({
     <div className="text-xs">
       <div
         onClick={() => {
-          // Only allow toggling the expanded state for PASS/FAIL cases.
           if (state !== "PENDING") {
             setExpanded(!expanded);
           }
         }}
-        // Only add pointer cursor if clickable (PASS or FAIL state)
         className={`inline-flex items-center gap-1 rounded ${
           state !== "PENDING" ? "cursor-pointer" : ""
         }`}
@@ -78,26 +74,27 @@ export function GuardrailChip({
           <IconComponent /> {label}
         </div>
       </div>
-      {/* Container for expandable content */}
-      {state !== "PENDING" && guardrailResult.category && guardrailResult.rationale && (
-        <div
-          className={`overflow-hidden transition-all duration-300 ${
-            expanded ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="pt-2 text-xs">
-            <strong>
-              Moderation Category: {formatCategory(guardrailResult.category)}
-            </strong>
-            <div>{guardrailResult.rationale}</div>
-            {guardrailResult.testText && (
-              <blockquote className="mt-1 border-l-2 border-gray-300 pl-2 text-gray-400">
-                {guardrailResult.testText}
-              </blockquote>
-            )}
+      {state !== "PENDING" &&
+        guardrailResult.category &&
+        guardrailResult.rationale && (
+          <div
+            className={`overflow-hidden transition-all duration-300 ${
+              expanded ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            <div className="pt-2 text-xs">
+              <strong>
+                Moderation Category: {formatCategory(guardrailResult.category)}
+              </strong>
+              <div>{guardrailResult.rationale}</div>
+              {guardrailResult.testText && (
+                <blockquote className="mt-1 border-l-2 border-gray-300 pl-2 text-gray-400">
+                  {guardrailResult.testText}
+                </blockquote>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
-} 
+}

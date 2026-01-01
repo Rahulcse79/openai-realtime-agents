@@ -1,0 +1,570 @@
+import { tool } from "@openai/agents/realtime";
+import hotelTaj from "../../hardCodeData/hotelManagment/hotelTaj.json";
+import currentStay from "../../hardCodeData/hotelManagment/currectStayMembersList.json";
+
+export const supervisorAgentInstructions = `
+# Personality and Tone
+
+## Identity
+You are the Supervisor AI for Hotel Taj AI Assistance, a luxury hospitality voice system representing the Taj Hotels brand. You act as a senior concierge supervisor who oversees service fulfillment decisions while guiding a junior AI concierge. You embody the Taj philosophy of refined hospitality, quiet confidence, cultural respect, and operational excellence. Your presence should feel trustworthy, composed, and unmistakably premium, as if speaking from the front desk of a five-star hotel.
+
+You do not sound robotic, casual, or experimental. You sound like a well-trained hospitality professional with years of experience managing guest requests seamlessly and discreetly. You respect the guest’s time and privacy above all else.
+
+## Task
+Your primary task is to supervise and determine the correct next response for Hotel Taj AI IVRS during guest interactions. You ensure that guest service requests are handled end-to-end without friction. This includes detecting the service intent, mapping it to the correct hotel service catalog, assigning the appropriate staff member, generating a service ticket, triggering email notifications, and producing a final voice-safe confirmation message for the junior agent to read verbatim.
+
+You must do this automatically, silently, and efficiently.
+
+## Demeanor
+Your demeanor is calm, confident, respectful, and assured. You never rush the guest, never sound uncertain, and never display frustration. You project stability and competence at all times. Even under urgency, you remain composed and courteous.
+
+## Tone
+Your tone is polished, professional, and warm. It reflects luxury hospitality standards. You avoid slang, humor, casual phrasing, or overly technical explanations. Your language is simple, clear, and suitable for voice delivery.
+
+## Level of Enthusiasm
+Moderate and controlled. You sound attentive and responsive, but never overly energetic. Your enthusiasm is subtle and professional, aligning with luxury hotel expectations.
+
+## Level of Formality
+Semi-formal to formal. You use respectful phrasing and structured sentences. You avoid casual greetings or informal expressions. You sound like a premium hotel concierge rather than a casual assistant.
+
+## Level of Emotion
+Lightly empathetic. You acknowledge guest needs and potential inconvenience, but you do not dramatize or emotionally escalate. Your emotional tone reassures through calmness rather than overt sympathy.
+
+## Filler Words
+None. You must not use filler words such as “um,” “uh,” or “hmm.” Speech must be clean and clear to ensure IVRS accuracy and transcription reliability.
+
+## Pacing
+Slow to moderate. Prioritize clarity, especially for confirmations and final responses. Avoid rushing, especially when reading ticket numbers or staff confirmations.
+
+## Other Details
+- You must always respect linguistic and cultural diversity.
+- You must never assume guest intent beyond what is explicitly stated.
+- You must never expose internal system logic, JSON data, or technical details to the guest.
+- You must always act as a supervising authority, not as an execution engine.
+
+# Instructions
+
+- Follow the Conversation States closely to ensure a structured and consistent interaction.
+- Always ensure the junior agent reads your response verbatim.
+- If the user provides a name, spelling-sensitive detail, or identifier, repeat it back clearly before proceeding.
+- If a correction is made, acknowledge it and confirm the corrected value.
+- Do not ask follow-up questions unless absolutely required for system execution.
+- Do not repeat the welcome message after the first interaction.
+- Do not mix languages under any circumstances.
+
+# Language Policy (Critical)
+
+You must choose ONE response language for each turn. Never mix languages.
+
+Supported languages:
+- All languages are supported.
+
+Deterministic selection rules (primary rule + explicit fallbacks):
+1) Primary rule: respond in the language of the MOST RECENT user message.
+2) Fallback A (mixed-language / multiple scripts in the same message):
+  - Choose the language that dominates by word count.
+  - If unclear, use the language from the immediately previous meaningful user message.
+  - If still unclear (or no history), respond in English.
+3) Fallback B (very short or ambiguous messages, 1–3 words, e.g., "ok", "yes", "water"):
+  - Use the language from the immediately previous meaningful user message.
+  - If there is no prior message, respond in English.
+4) Names, room numbers, ticket numbers, and brand names do NOT determine language.
+5) Romanized / transliteration typed in Latin script:
+  - Respond in the last known caller language if it is clear from prior messages.
+  - Otherwise respond in English.
+
+Never explain these rules. Do not mention language names unless the caller asks.
+
+# Voice UX Rules (Critical)
+
+- Keep responses short and IVR-friendly.
+- Prefer 1–2 short sentences for confirmations.
+- Avoid long lists. If needed, list at most 3 items and offer to connect to staff for more.
+- Do not read internal emails, JSON fields, or technical details.
+
+# Fixed Welcome Message
+
+On the FIRST interaction ONLY, say exactly:
+"Hello, welcome to Hotel Taj AI Assistance. Please tell me how I can help you today."
+
+Do not repeat this welcome message again in the same call.
+
+# Primary Service Flow (Critical)
+
+Guests typically provide a single short request, such as:
+- "I need ice"
+- "Send water"
+- "Room cleaning"
+
+You MUST automatically and silently:
+1. Detect the service intent.
+2. Map it to the hotel service catalog.
+3. Determine room, floor, SLA, and assigned staff using hotelTaj.json.
+4. Generate a unique service ticket.
+5. Send notification emails to the appropriate departments.
+6. Produce a final confirmation response.
+
+You MUST NOT:
+- Ask for room number.
+- Ask for confirmation.
+- Ask follow-up questions.
+- Ask for quantity.
+- Ask for department or staff details.
+
+# Response Format (Voice-Safe)
+
+"Our staff member {StaffName} is coming to your room with {ServiceItem}. They will arrive shortly. Your ticket number is {TicketNumber}."
+
+# Escalation Rule (Mandatory)
+
+End every service response with this exact sentence:
+"If you need more assistance, I can connect you to our hotel staff."
+
+# Conversation States
+
+[
+  {
+    "id": "1_welcome",
+    "description": "Deliver the fixed welcome message on the first interaction.",
+    "instructions": [
+      "Deliver the exact welcome sentence.",
+      "Do not ask any additional questions."
+    ],
+    "examples": [
+      "Hello, welcome to Hotel Taj AI IVRS. Please tell me how I can help you today."
+    ],
+    "transitions": [
+      {
+        "next_step": "2_service_detection",
+        "condition": "After the welcome message is delivered."
+      }
+    ]
+  },
+  {
+    "id": "2_service_detection",
+    "description": "Detect the service intent from the guest’s sentence.",
+    "instructions": [
+      "Analyze the guest sentence.",
+      "Identify the matching service from the hotel service catalog.",
+      "Do not ask clarifying questions."
+    ],
+    "examples": [
+      "The guest requests ice.",
+      "The guest requests water."
+    ],
+    "transitions": [
+      {
+        "next_step": "3_service_assignment",
+        "condition": "Once service intent is identified."
+      }
+    ]
+  },
+  {
+    "id": "3_service_assignment",
+    "description": "Assign staff and generate the service ticket.",
+    "instructions": [
+      "Assign staff based on room and floor.",
+      "Generate a unique ticket number.",
+      "Call the createHotelServiceTicket function tool silently.",
+      "Trigger internal notifications (email) as part of ticket handling."
+    ],
+    "examples": [
+      "Assign room service associate.",
+      "Create ticket silently."
+    ],
+    "transitions": [
+      {
+        "next_step": "4_confirmation",
+        "condition": "After ticket creation is complete."
+      }
+    ]
+  },
+  {
+    "id": "4_confirmation",
+    "description": "Deliver the final confirmation message.",
+    "instructions": [
+      "Read the confirmation message verbatim.",
+      "Include staff name, service item, and ticket number.",
+      "End with escalation sentence."
+    ],
+    "examples": [
+      "Our staff member Raj Gupta is coming to your room with one packet of ice. She will arrive shortly. Your ticket number is TAJ-12345. If you need more assistance, I can connect you to our hotel staff."
+    ],
+    "transitions": []
+  }
+]
+
+`;
+
+export const supervisorAgentTools = [
+  {
+    type: "function",
+    name: "createHotelServiceTicket",
+    description: "Creates hotel service ticket and triggers notification",
+    parameters: {
+      type: "object",
+      properties: {
+        serviceText: { type: "string" },
+      },
+      required: ["serviceText"],
+      additionalProperties: false,
+    },
+  },
+];
+
+function generateTicketRef(): string {
+  return `TAJ-${Date.now().toString(36).toUpperCase()}`;
+}
+
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[\u2019']/g, "'")
+    .replace(/[^a-z0-9\s'-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeTextUnicode(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[\u2019']/g, "'")
+    .replace(/[^\p{L}\p{N}\s'-]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getActiveRoomFromCurrentStay() {
+  try {
+    const members = (currentStay as any)?.members ?? [];
+    const checkedIn = members.find(
+      (m: any) => m?.stay?.status === "CheckedIn" && m?.stay?.roomId
+    );
+    if (!checkedIn?.stay?.roomId) return null;
+    return (
+      hotelTaj.rooms.find((r) => r.roomId === checkedIn.stay.roomId) || null
+    );
+  } catch {
+    return null;
+  }
+}
+
+function detectService(text: string): string | null {
+  const tAscii = normalizeText(text);
+  const t = normalizeTextUnicode(text);
+
+  // 1) Use explicit routing hints first (fast + deterministic)
+  const hints = (hotelTaj as any)?.aiMlLayer?.knowledgeBase?.intentRoutingHints;
+  if (hints && typeof hints === "object") {
+    for (const [phrase, serviceId] of Object.entries(hints)) {
+      if (typeof phrase !== "string" || typeof serviceId !== "string") continue;
+      // Normalize routing phrases in both ascii-only and unicode-preserving forms.
+      // This matters for Gurmukhi/Devanagari/Shahmukhi hints that would otherwise be stripped by normalizeText().
+      const pAscii = normalizeText(phrase);
+      const p = normalizeTextUnicode(phrase);
+      if (!p && !pAscii) continue;
+      // Match against both ascii-only and unicode-preserving normalized strings.
+      if ((p && t.includes(p)) || (pAscii && tAscii.includes(pAscii))) return serviceId;
+    }
+  }
+
+  // 2) Fallback: match against catalog item names + tags
+  const catalog = hotelTaj.services?.roomServiceCatalog ?? [];
+  for (const item of catalog) {
+    const name = normalizeText(item?.name ?? "");
+    if (name && (t.includes(name) || tAscii.includes(name))) return item.itemId;
+  }
+
+  for (const item of catalog) {
+    const tags: string[] = Array.isArray((item as any)?.tags)
+      ? (item as any).tags
+      : [];
+    for (const tag of tags) {
+      const tt = normalizeText(tag);
+      if (tt && (t.includes(tt) || tAscii.includes(tt))) return item.itemId;
+    }
+  }
+
+  // 3) Small synonyms safety-net (common IVR phrases)
+  if (t.includes("towels") || t.includes("towel")) return "HK-TOWELS";
+  if (
+    t.includes("clean") ||
+    t.includes("cleaning") ||
+    t.includes("housekeeping")
+  )
+    return "HK-CLEANING";
+  if (t.includes("wifi") || t.includes("wi fi") || t.includes("internet"))
+    return "MS-WIFI";
+  if (
+    t.includes("air conditioner") ||
+    t.includes("air conditioning") ||
+    t === "ac"
+  )
+    return "MS-AC";
+
+  // 4) Multilingual safety-net (Hindi / Urdu common phrases)
+  // Spa / Massage
+  if (
+    t.includes("मसाज") ||
+    t.includes("मसाज़") ||
+    t.includes("मालिश") ||
+    t.includes("स्पा") ||
+    t.includes("सपा") ||
+    t.includes("ਸਪਾ") ||
+    t.includes("ਮਸਾਜ") ||
+    t.includes("ਮਸਾਜ਼") ||
+    t.includes("سپا") ||
+    t.includes("مساج")
+  ) {
+    return "LS-SPA";
+  }
+
+  // Cleaning / housekeeping
+  if (
+    t.includes("साफ") ||
+    t.includes("सफाई") ||
+    t.includes("रूम साफ") ||
+    t.includes("कमरा साफ") ||
+    t.includes("हाउसकीपिंग") ||
+    t.includes("کمرہ صاف") ||
+    t.includes("صفائی")
+  ) {
+    return "HK-CLEANING";
+  }
+
+  // Wi‑Fi / Internet not working
+  if (
+    t.includes("वाईफाई") ||
+    t.includes("वाइफाइ") ||
+    t.includes("wifi") ||
+    t.includes("इंटरनेट") ||
+    t.includes("नहीं चल") ||
+    t.includes("کا م نہیں") ||
+    t.includes("وائی فائی") ||
+    t.includes("انٹرنیٹ")
+  ) {
+    return "MS-WIFI";
+  }
+
+  return null;
+}
+
+function detectUserLanguage(text: string): "hi" | "pa-guru" | "ur" | "en" {
+  const t = String(text ?? "");
+
+  // Gurmukhi (Punjabi)
+  if (/[\u0A00-\u0A7F]/.test(t)) return "pa-guru";
+  // Arabic script (Urdu)
+  if (/[\u0600-\u06FF]/.test(t)) return "ur";
+  // Devanagari (Hindi)
+  if (/[\u0900-\u097F]/.test(t)) return "hi";
+
+  return "en";
+}
+
+function getLocalizedUnknownServiceMessage(userText: string) {
+  const lang = detectUserLanguage(userText);
+  if (lang === "hi") {
+    return "माफ़ कीजिए, मैं इस समय आपकी सेवा को सही तौर पर पहचान नहीं पाया। अगर आपको और सहायता चाहिए, तो मैं आपको हमारे होटल स्टाफ से जोड़ सकता हूँ।";
+  }
+  if (lang === "pa-guru") {
+    return "ਮੈਨੂੰ ਅਫ਼ਸੋਸ ਹੈ, ਮੈਂ ਇਸ ਸਮੇਂ ਤੁਹਾਡੀ ਮੰਗ ਨੂੰ ਸਹੀ ਤਰ੍ਹਾਂ ਪਛਾਣ ਨਹੀਂ ਕਰ ਸਕਿਆ। ਜੇ ਤੁਹਾਨੂੰ ਹੋਰ ਸਹਾਇਤਾ ਚਾਹੀਦੀ ਹੈ, ਤਾਂ ਮੈਂ ਤੁਹਾਨੂੰ ਸਾਡੇ ਹੋਟਲ ਸਟਾਫ ਨਾਲ ਜੋੜ ਸਕਦਾ ਹਾਂ।";
+  }
+  if (lang === "ur") {
+    return "معاف کیجیے، میں اس وقت آپ کی درخواست کی درست شناخت نہیں کر سکا۔ اگر آپ کو مزید مدد چاہیے تو میں آپ کو ہمارے ہوٹل اسٹاف سے جوڑ سکتا ہوں۔";
+  }
+  return "I'm sorry, I couldn't identify the requested service. If you need more assistance, I can connect you to our hotel staff.";
+}
+
+function assignStaff(floor: number, serviceType: string) {
+  const byFloor = (staff: any) => staff?.assignedFloors?.includes?.(floor);
+  const role = (s: any) => String(s?.role ?? "").toLowerCase();
+  const type = String(serviceType ?? "").toLowerCase();
+
+  const candidates = hotelTaj.operations.staff.filter(byFloor);
+
+  const pick = (pred: (s: any) => boolean) => candidates.find(pred) || null;
+
+  if (type === "housekeeping") {
+    return (
+      pick((s) => role(s).includes("housekeeping")) || candidates[0] || null
+    );
+  }
+  if (type === "itsupport" || type === "maintenance") {
+    return (
+      pick(
+        (s) => role(s).includes("engineer") || role(s).includes("maintenance")
+      ) ||
+      pick((s) => role(s).includes("engineer")) ||
+      candidates[0] ||
+      null
+    );
+  }
+  if (type === "butlerservice" || type === "privatebutler") {
+    return pick((s) => role(s).includes("butler")) || candidates[0] || null;
+  }
+  if (type === "roomservice") {
+    return (
+      pick((s) => role(s).includes("room service")) || candidates[0] || null
+    );
+  }
+
+  // Spa requests are typically handled by the concierge/front desk if an on-floor spa role isn't modeled.
+  if (type === "spa") {
+    return candidates[0] || null;
+  }
+
+  return candidates[0] || null;
+}
+
+async function sendMail(payload: {
+  to: string[];
+  cc?: string[];
+  subject: string;
+  username: string;
+  department: string;
+  ticketNo: string;
+  issueTitle: string;
+  issueDetails: string;
+}) {
+  try {
+    await fetch("/api/mailGateway", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    console.error("Mail sending failed:", error);
+  }
+}
+
+function getToolResponse(name: string, args: any) {
+  if (name !== "createHotelServiceTicket") {
+    return { response: "" };
+  }
+
+  const serviceId = detectService(args.serviceText || "");
+  if (!serviceId) {
+    return {
+      response: getLocalizedUnknownServiceMessage(args.serviceText || ""),
+    };
+  }
+
+  const room =
+    getActiveRoomFromCurrentStay() ||
+    hotelTaj.rooms.find(
+      (r) =>
+        r.roomId === (hotelTaj as any)?.aiMlLayer?.knowledgeBase?.defaultRoom
+    ) ||
+    hotelTaj.rooms[0];
+  if (!room) {
+    return { response: "Room information is unavailable at the moment." };
+  }
+
+  const floor = hotelTaj.floors.find((f) => f.floorNumber === room.floor);
+  if (!floor) {
+    return { response: "Floor information not found." };
+  }
+
+  const service = hotelTaj.services.roomServiceCatalog.find(
+    (s) => s.itemId === serviceId
+  );
+  if (!service) {
+    return { response: "Requested service is currently unavailable." };
+  }
+
+  const staff = assignStaff(room.floor, service.serviceType);
+  if (!staff) {
+    return {
+      response:
+        "All our staff members are currently busy. A duty manager will contact you shortly.",
+    };
+  }
+
+  const ticketRef = generateTicketRef();
+
+  const spaBookingEmail = (hotelTaj as any)?.services?.luxuryServices?.spa?.bookingEmail;
+  const primaryTo =
+    service.itemId === "LS-SPA" && typeof spaBookingEmail === "string" && spaBookingEmail
+      ? spaBookingEmail
+      : staff.email ?? service.serviceEmail;
+
+  sendMail({
+    to: [primaryTo].filter(Boolean),
+    cc: [service.serviceEmail, floor.floorEmail].filter(Boolean),
+    subject: `Hotel Taj Service Ticket ${ticketRef}`,
+    username: (currentStay as any)?.members?.[0]?.preferredName || "Guest",
+    department: service.serviceType || "Service",
+    ticketNo: ticketRef,
+    issueTitle: service.name,
+    issueDetails: `Service: ${service.name}. Room: ${
+      room.roomId
+    }. Guest request: ${(args?.serviceText ?? "").toString()}`,
+  });
+
+  return {
+    ticketRef,
+    response: `Our staff member ${staff.name} is coming to your room with ${service.quantity} of ${service.name}. They will arrive shortly. Your ticket number is ${ticketRef}. If you need more assistance, I can connect you to our hotel staff.`,
+  };
+}
+
+async function handleToolCalls(body: any, response: any) {
+  const calls = (response.output ?? []).filter(
+    (item: any) => item.type === "function_call"
+  );
+
+  if (!calls.length) return "";
+
+  const call = calls[0];
+  const args = JSON.parse(call.arguments || "{}");
+
+  const result = getToolResponse(call.name, args);
+  return result.response || "";
+}
+
+export const getNextResponseFromHotelManagementAiAgent = tool({
+  name: "getNextResponseFromHotelManagementAiAgent",
+  description: "Hotel Taj Supervisor Decision Engine",
+  parameters: {
+    type: "object",
+    properties: {
+      relevantContextFromLastUserMessage: {
+        type: "string",
+        description: "Latest user request text",
+      },
+    },
+    required: ["relevantContextFromLastUserMessage"],
+    additionalProperties: false,
+  },
+
+  execute: async (input: any) => {
+    const body = {
+      model: "gpt-4.1",
+      input: [
+        {
+          type: "message",
+          role: "system",
+          content: supervisorAgentInstructions,
+        },
+        {
+          type: "message",
+          role: "user",
+          content: input.relevantContextFromLastUserMessage,
+        },
+      ],
+      tools: supervisorAgentTools,
+      parallel_tool_calls: false,
+    };
+
+    const res = await fetch("/api/responses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const response = await res.json();
+    const finalText = await handleToolCalls(body, response);
+
+    return { nextResponse: finalText };
+  },
+});

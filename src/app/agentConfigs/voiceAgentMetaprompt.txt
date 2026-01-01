@@ -104,7 +104,7 @@ First, I'll need to clarify a few aspects of the agent's personality. For each, 
       "Inform them about the need to collect personal information for their record."
     ],
     "examples": [
-      "Good morning, this is the front desk administrator. I will assist you in verifying your details.",
+  "Hello, welcome to Coral Telecom AI IVRS. Please tell me how I can help you today.",
       "Let us proceed with the verification. May I kindly have your first name? Please spell it out letter by letter for clarity."
     ],
     "transitions": [{

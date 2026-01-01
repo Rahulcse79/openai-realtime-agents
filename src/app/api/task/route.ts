@@ -1,46 +1,74 @@
 import { NextRequest, NextResponse } from "next/server";
+import { loadServerEnvAsync } from "@/app/lib/envSetup";
+import { setCorsHeaders } from "@/app/api/utils/cors";
 
-const DEFAULT_BACKEND_ORIGIN =
-  process.env.TASK_BACKEND_BASE_URL ?? "http://localhost:8996/app/v2";
+function getBackendOrigin() {
+  const origin =
+    process.env.TASK_BACKEND_BASE_URL ??
+    process.env.NEXT_PUBLIC_TASK_BACKEND_BASE_URL;
+  if (!origin) {
+    throw new Error(
+      "TASK_BACKEND_BASE_URL is not defined (set TASK_BACKEND_BASE_URL or NEXT_PUBLIC_TASK_BACKEND_BASE_URL in .env)"
+    );
+  }
+  return origin;
+}
 
 function getAuthHeader(req: NextRequest): string {
   const incoming = req.headers.get("authorization");
-  if (incoming && incoming.trim().length > 0) {
+  if (incoming && incoming.trim()) {
     return incoming;
   }
 
-  // const token = process.env.TASK_AUTH_TOKEN;
-  const token = "Opaque 00aa5095-4fa4-4816-8381-5792d1dbe24f";
+  const token =
+    process.env.TASK_AUTH_TOKEN ?? process.env.NEXT_PUBLIC_TASK_AUTH_TOKEN;
   if (!token) {
-    throw new Error("TASK_AUTH_TOKEN is not defined in environment variables");
+    throw new Error(
+      "TASK_AUTH_TOKEN is not defined (set TASK_AUTH_TOKEN or NEXT_PUBLIC_TASK_AUTH_TOKEN in .env)"
+    );
   }
 
-  return `${token}`;
+  return token;
 }
 
 async function proxy(req: NextRequest) {
-  const url = new URL(req.url);
+  await loadServerEnvAsync();
 
+  let backendOrigin: string;
+  try {
+    backendOrigin = getBackendOrigin();
+  } catch (err: any) {
+    return setCorsHeaders(
+      NextResponse.json({ error: err.message }, { status: 500 })
+    );
+  }
+
+  const url = new URL(req.url);
   const action = url.pathname.replace(/^\/api\/task/, "") || "/";
-  const targetUrl = `${DEFAULT_BACKEND_ORIGIN}${action}${url.search}`;
-  const target = new URL(targetUrl);
+  const targetUrl = `${backendOrigin}${action}${url.search}`;
 
   const headers = new Headers();
-  headers.set("Authorization", getAuthHeader(req));
 
-  const ct = req.headers.get("content-type");
-  if (ct) headers.set("content-type", ct);
+  try {
+    headers.set("Authorization", getAuthHeader(req));
+  } catch (err: any) {
+    return setCorsHeaders(
+      NextResponse.json({ error: err.message }, { status: 500 })
+    );
+  }
+
+  const contentType = req.headers.get("content-type");
+  if (contentType) headers.set("content-type", contentType);
 
   let body: BodyInit | undefined;
 
   if (req.method !== "GET" && req.method !== "HEAD") {
-    if (ct?.includes("multipart/form-data")) {
-      const form = await req.formData();
-      body = form;
+    if (contentType?.includes("multipart/form-data")) {
+      body = await req.formData();
       headers.delete("content-type");
     } else {
       body = await req.text();
-      if (!headers.get("content-type")) {
+      if (!headers.has("content-type")) {
         headers.set("content-type", "application/json");
       }
     }
@@ -48,81 +76,62 @@ async function proxy(req: NextRequest) {
 
   let upstream: Response;
   try {
-    upstream = await fetch(target.toString(), {
+    upstream = await fetch(targetUrl, {
       method: req.method,
       headers,
       body,
       cache: "no-store",
     });
   } catch (err: any) {
-    return NextResponse.json(
-      {
-        error: "Task proxy upstream fetch failed",
-        detail: String(err?.message ?? err),
-        target: target.toString(),
-        hint: "Verify TASK_BACKEND_BASE_URL and Spring service availability",
-      },
-      { status: 502 }
+    return setCorsHeaders(
+      NextResponse.json(
+        {
+          error: "Upstream service unreachable",
+          target: targetUrl,
+          detail: String(err?.message ?? err),
+        },
+        { status: 502 }
+      )
     );
   }
 
-  const upstreamCt = upstream.headers.get("content-type") ?? "";
   const resHeaders = new Headers();
-
+  const upstreamCt = upstream.headers.get("content-type");
   if (upstreamCt) resHeaders.set("content-type", upstreamCt);
 
   const cd = upstream.headers.get("content-disposition");
   if (cd) resHeaders.set("content-disposition", cd);
 
-  if (upstreamCt.includes("application/json")) {
-    const data = await upstream.json();
-    return NextResponse.json(data, {
-      status: upstream.status,
-      headers: resHeaders,
-    });
-  }
+  let response: NextResponse;
 
-  if (upstreamCt.startsWith("text/")) {
+  if (upstreamCt?.includes("application/json")) {
+    const json = await upstream.json();
+    response = NextResponse.json(json, { status: upstream.status });
+  } else if (upstreamCt?.startsWith("text/")) {
     const text = await upstream.text();
-    return new NextResponse(text, {
+    response = new NextResponse(text, {
+      status: upstream.status,
+      headers: resHeaders,
+    });
+  } else {
+    const buffer = await upstream.arrayBuffer();
+    response = new NextResponse(buffer, {
       status: upstream.status,
       headers: resHeaders,
     });
   }
 
-  const buffer = await upstream.arrayBuffer();
-  return new NextResponse(buffer, {
-    status: upstream.status,
-    headers: resHeaders,
-  });
+  return setCorsHeaders(response);
 }
 
 export async function GET(req: NextRequest) {
-  try {
-    return await proxy(req);
-  } catch (e: any) {
-    return NextResponse.json(
-      {
-        error: "Task proxy failed",
-        detail: String(e?.message ?? e),
-        hint: "Check TASK_BACKEND_BASE_URL and TASK_AUTH_TOKEN configuration",
-      },
-      { status: 500 }
-    );
-  }
+  return proxy(req);
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    return await proxy(req);
-  } catch (e: any) {
-    return NextResponse.json(
-      {
-        error: "Task proxy failed",
-        detail: String(e?.message ?? e),
-        hint: "Check TASK_BACKEND_BASE_URL and TASK_AUTH_TOKEN configuration",
-      },
-      { status: 500 }
-    );
-  }
+  return proxy(req);
+}
+
+export function OPTIONS() {
+  return setCorsHeaders(new NextResponse(null, { status: 204 }));
 }
