@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 
 type Body = {
   to: string | string[];
+  cc?: string | string[];
   subject?: string;
   username: string;
   department: string;
@@ -26,6 +27,7 @@ export async function POST(req: Request) {
 
     const res = await SendMail(body.to, {
       subject: body.subject,
+      cc: body.cc,
       username: body.username,
       department: body.department,
       ticketNo: body.ticketNo,

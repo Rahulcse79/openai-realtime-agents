@@ -127,6 +127,41 @@ function isTriviallyLanguageAgnostic(text: string) {
   return false;
 }
 
+function getTextFromHistoryMessage(h: any): string {
+  if (!h || typeof h !== "object") return "";
+  const c: any = (h as any).content;
+  if (typeof c === "string") return c;
+  if (Array.isArray(c)) {
+    return c
+      .map((part: any) => {
+        if (!part || typeof part !== "object") return "";
+        if (part.type === "input_text") return part.text ?? "";
+        if (part.type === "text") return part.text ?? "";
+        if (part.type === "audio") return part.transcript ?? "";
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n");
+  }
+  return "";
+}
+
+function isShortOrAmbiguousUserTurn(text: string): boolean {
+  const t = (text ?? "").trim();
+  if (!t) return true;
+  if (t.length <= 2) return true;
+  // If it's a single word (common in voice IVR like "no"/"yes"/"नहीं"/"نہیں"),
+  // treat it as ambiguous and do NOT consider it a language switch.
+  // This intentionally captures non-Latin scripts too.
+  if (!/\s/.test(t) && t.length <= 6) return true;
+  if (/^[\d\s+\-()#.,]*$/.test(t)) return true;
+  // A small set of common short confirmations across languages.
+  if (/^(ok|okay|yes|no|ya|yep|nope|hm|hmm|haan|han|ji|thik|theek|nahi|nahin|nhi|n|haanji|theek hai)\b/i.test(t) && t.length <= 12) {
+    return true;
+  }
+  return false;
+}
+
 export function createLanguageLockGuardrail(options?: {
   name?: string;
   contextKey?: string;
@@ -154,18 +189,21 @@ export function createLanguageLockGuardrail(options?: {
         const history: any[] = ctx.history ?? [];
         const userMessages = history
           .filter((h) => h?.type === "message" && h?.role === "user")
-          .map((h) =>
-            typeof h?.content === "string"
-              ? h.content
-              : h?.content?.[0]?.text ?? ""
-          )
+          .map((h) => getTextFromHistoryMessage(h))
           .filter((t) => typeof t === "string" && t.trim().length > 0);
 
-        if (!lock.conversationLanguage && userMessages.length > 0) {
-          const candidate =
-            userMessages.find((t) => t.trim().length >= 8) ?? userMessages[0];
-          const userLang = await detectLanguage(candidate);
+        // Instead of a permanent "lock" to the initial language, we track the
+        // most recent CLEAR user language. Short/ambiguous turns (e.g., "no",
+        // numbers, OTPs) do not change the conversation language.
+        const clearUserMessages = userMessages.filter(
+          (t) => !isShortOrAmbiguousUserTurn(t) && t.trim().length >= 4
+        );
+
+        const latestClear = clearUserMessages[clearUserMessages.length - 1];
+        if (latestClear) {
+          const userLang = await detectLanguage(latestClear);
           lock.conversationLanguage = userLang;
+          lock.lastClearUserText = latestClear;
           ctx[contextKey] = lock;
         }
 

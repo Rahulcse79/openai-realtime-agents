@@ -3,60 +3,53 @@
   "owner": "Rajesh Tuli",
   "cto": {
     "name": "Naveen Khanna",
-    "email": "rahul.singh@coraltele.com"
+    "email": "naveenkhanna@coraltele.com"
   },
   "development": {
     "name": "Rahul Singh",
     "email": "rahul.singh@coraltele.com"
   },
-  "ccMembersEmails": [
-    "ravikumar.singh@coraltele.com"
-  ],
+  "ccMembersEmails": ["rahul.singh@coraltele.com"],
   "departments": [
     {
       "name": "5G",
       "head": "Navjyoti Singh",
-      "headEmail": "rahul.singh@coraltele.com"
+      "headEmail": "navjyoty@coraltele.com"
     },
     {
       "name": "R&D Department",
       "head": "Navjyoti Singh",
-      "headEmail": "rahul.singh@coraltele.com"
+      "headEmail": "navjyoty@coraltele.com"
     },
     {
       "name": "IT Support",
       "head": "Arjun Topwal",
-      "headEmail": "rahul.singh@coraltele.com"
+      "headEmail": "arjun.topwal@coraltele.com"
     },
     {
       "name": "National Support",
       "head": "Arjun Topwal",
-      "headEmail": "rahul.singh@coraltele.com"
+      "headEmail": "arjun.topwal@coraltele.com"
     },
     {
       "name": "Testing",
       "head": "Umesh Purohit",
-      "headEmail": "rahul.singh@coraltele.com"
+      "headEmail": "umeshpurohit@coraltele.com"
     },
     {
       "name": "Sales",
       "head": "Rahul Gupta",
-      "headEmail": "rahul.singh@coraltele.com"
+      "headEmail": "rahul.gupta@coraltele.com"
     },
     {
       "name": "HR",
       "head": "Geeta Prasad",
-      "headEmail": "rahul.singh@coraltele.com"
+      "headEmail": "geeta.prasad@coraltele.com"
     },
     {
       "name": "AI/ML Team",
       "head": "Rishi Saini",
-      "headEmail": "rahul.singh@coraltele.com"
-    },
-    {
-      "name": "All support",
-      "head": "Kartikeya Sharma",
-      "headEmail": "rahul.singh@coraltele.com"
+      "headEmail": "rishi.saini@coraltele.com"
     }
   ]
 }

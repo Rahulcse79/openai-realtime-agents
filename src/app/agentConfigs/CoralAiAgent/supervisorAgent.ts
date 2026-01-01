@@ -1,5 +1,6 @@
 import { RealtimeItem, tool } from "@openai/agents/realtime";
 import employeeData from "../../hardCodeData/coralTicketing/employeeData.json";
+import topicData from "../../hardCodeData/coralTicketing/topicData.json";
 
 export const supervisorAgentInstructions = `You are an expert customer service supervisor agent, tasked with providing real-time guidance to a more junior agent that's chatting directly with the customer. You will be given detailed response instructions, tools, and the full conversation history so far, and you should create a correct next message that the junior agent can read directly.
 
@@ -13,12 +14,12 @@ You are a helpful internal IVRS supervisor agent working for Coral Telecom, help
 
 ## Primary Use Case: Employee Ticket Creation (CRITICAL)
 When the employee wants to create a ticket (or you infer that intent), follow this flow and keep it voice-friendly:
-1) Ask for ticket subject (short)
-2) Ask for issue description (detail)
-3) Ask which team/department should receive it
-4) Ask for optional CC list (names or employee numbers) and confirm if none
-5) Read back a short summary and ask for confirmation
-6) After confirmation, call createEmployeeTicket and then confirm success with the ticket reference
+1) Infer a short ticket subject from the employee's issue (do NOT ask for a subject)
+2) Ask for issue description (detail) if not already clear
+3) Automatically detect the receiving team/department using ONLY department names from TopicData.json (do NOT ask the employee for the department)
+4) Ask for optional send-to list (names or employee numbers). If none, treat it as empty.
+5) Call createEmployeeTicket as soon as you have the required fields (subject you inferred, description, recipientTeam you detected)
+6) Confirm success with the ticket reference (do NOT ask for confirmation)
 
 ## Language Rules (CRITICAL — follow exactly)
 You are a multilingual IVRS voice assistant.
@@ -273,7 +274,7 @@ async function createTaskTicket(args: any, ticket: any) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": token,
+        Authorization: token,
       },
       body: JSON.stringify(taskPayload),
     });
@@ -293,7 +294,24 @@ async function createTaskTicket(args: any, ticket: any) {
 }
 
 async function sendTicketMail(args: any, ticket: any) {
-  if (!args?.sendTo || args.sendTo.length === 0) return;
+  const baseCc = Array.isArray(topicData?.ccMembersEmails)
+    ? topicData.ccMembersEmails
+    : [];
+
+  const recipientTeam: string =
+    typeof args?.recipientTeam === "string" ? args.recipientTeam : "";
+  const departmentHeadEmail = getDepartmentHeadEmail(recipientTeam);
+
+  const userSendTo = Array.isArray(args?.sendTo) ? args.sendTo : [];
+  const toList = Array.from(new Set(userSendTo)).filter(Boolean);
+  const ccList = Array.from(new Set([...baseCc, departmentHeadEmail])).filter(
+    Boolean
+  );
+
+  const finalTo = (toList.length > 0 ? toList : ccList).filter(Boolean);
+  const finalCc = toList.length > 0 ? ccList : [];
+
+  if (finalTo.length === 0) return;
 
   try {
     await fetch("/api/mailGateway", {
@@ -302,7 +320,8 @@ async function sendTicketMail(args: any, ticket: any) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        to: args.sendTo,
+        to: finalTo,
+        cc: finalCc,
         username: ticket.requester.name,
         department: ticket.requester.department,
         ticketNo: ticket.ticketRef,
@@ -311,10 +330,52 @@ async function sendTicketMail(args: any, ticket: any) {
       }),
     });
 
-    console.log("[MAIL] Send to notification sent:", args.sendTo.join(", "));
+    console.log(
+      "[MAIL] Ticket email sent:",
+      `to=${finalTo.join(", ")}`,
+      finalCc.length ? `cc=${finalCc.join(", ")}` : ""
+    );
   } catch (err) {
     console.error("[MAIL] Failed to send send to mail:", err);
   }
+}
+
+function inferRecipientTeamFromTopicData(text: string): string | null {
+  const departments = (topicData as any)?.departments;
+  if (!Array.isArray(departments) || departments.length === 0) return null;
+
+  const haystack = (text || "").toLowerCase();
+  for (const d of departments) {
+    const name = String(d?.name ?? "").trim();
+    if (!name) continue;
+    if (haystack.includes(name.toLowerCase())) return name;
+  }
+  return null;
+}
+
+function normalizeDepartmentName(name: string): string {
+  return String(name || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function getDepartmentHeadEmail(recipientTeam: string): string {
+  const departments = (topicData as any)?.departments;
+  if (!Array.isArray(departments) || departments.length === 0) return "";
+
+  const wanted = normalizeDepartmentName(recipientTeam);
+  if (!wanted) return "";
+
+  const exact = departments.find(
+    (d: any) => normalizeDepartmentName(d?.name) === wanted
+  );
+  return String(exact?.headEmail ?? "").trim();
+}
+
+function resolveRecipientTeamFromText(text: string): string {
+  const inferred = inferRecipientTeamFromTopicData(text);
+  return inferred || "All support";
 }
 
 function getToolResponse(fName: string, args: any) {
@@ -322,6 +383,13 @@ function getToolResponse(fName: string, args: any) {
     case "getEmployeeProfile":
       return employeeData;
     case "createEmployeeTicket": {
+      // Ensure recipientTeam is ALWAYS set (fallback to "All support").
+      args.recipientTeam = resolveRecipientTeamFromText(
+        `${args?.recipientTeam ?? ""} ${args?.subject ?? ""} ${
+          args?.description ?? ""
+        }`
+      );
+
       const ticket = {
         ticketRef: generateTicketRef(),
         status: "CREATED",
