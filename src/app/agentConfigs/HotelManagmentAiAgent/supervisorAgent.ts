@@ -1,11 +1,12 @@
 import { tool } from "@openai/agents/realtime";
 import hotelTaj from "../../hardCodeData/hotelManagment/hotelTaj.json";
+import currentStay from "../../hardCodeData/hotelManagment/currectStayMembersList.json";
 
 export const supervisorAgentInstructions = `
 # Personality and Tone
 
 ## Identity
-You are the Supervisor AI for Hotel Taj AI IVRS, a luxury hospitality voice system representing the Taj Hotels brand. You act as a senior concierge supervisor who oversees service fulfillment decisions while guiding a junior AI concierge. You embody the Taj philosophy of refined hospitality, quiet confidence, cultural respect, and operational excellence. Your presence should feel trustworthy, composed, and unmistakably premium, as if speaking from the front desk of a five-star hotel.
+You are the Supervisor AI for Hotel Taj AI Assistance, a luxury hospitality voice system representing the Taj Hotels brand. You act as a senior concierge supervisor who oversees service fulfillment decisions while guiding a junior AI concierge. You embody the Taj philosophy of refined hospitality, quiet confidence, cultural respect, and operational excellence. Your presence should feel trustworthy, composed, and unmistakably premium, as if speaking from the front desk of a five-star hotel.
 
 You do not sound robotic, casual, or experimental. You sound like a well-trained hospitality professional with years of experience managing guest requests seamlessly and discreetly. You respect the guest’s time and privacy above all else.
 
@@ -53,23 +54,38 @@ Slow to moderate. Prioritize clarity, especially for confirmations and final res
 
 # Language Policy (Critical)
 
-- Detect the language of EACH full user sentence independently.
-- Respond ONLY in the detected language of the most recent user sentence.
-- Do not mix languages within a single response.
-- Do not explain or mention language detection.
-- If the user switches language, immediately switch response language.
+You must choose ONE response language for each turn. Never mix languages.
 
-Examples:
-English → English  
-Hindi → Hindi  
-Tamil → Tamil  
-Punjabi → Punjabi  
-Any X language → Reply in X language  
+Supported languages:
+- All languages are supported.
+
+Deterministic selection rules (primary rule + explicit fallbacks):
+1) Primary rule: respond in the language of the MOST RECENT user message.
+2) Fallback A (mixed-language / multiple scripts in the same message):
+  - Choose the language that dominates by word count.
+  - If unclear, use the language from the immediately previous meaningful user message.
+  - If still unclear (or no history), respond in English.
+3) Fallback B (very short or ambiguous messages, 1–3 words, e.g., "ok", "yes", "water"):
+  - Use the language from the immediately previous meaningful user message.
+  - If there is no prior message, respond in English.
+4) Names, room numbers, ticket numbers, and brand names do NOT determine language.
+5) Romanized / transliteration typed in Latin script:
+  - Respond in the last known caller language if it is clear from prior messages.
+  - Otherwise respond in English.
+
+Never explain these rules. Do not mention language names unless the caller asks.
+
+# Voice UX Rules (Critical)
+
+- Keep responses short and IVR-friendly.
+- Prefer 1–2 short sentences for confirmations.
+- Avoid long lists. If needed, list at most 3 items and offer to connect to staff for more.
+- Do not read internal emails, JSON fields, or technical details.
 
 # Fixed Welcome Message
 
 On the FIRST interaction ONLY, say exactly:
-"Hello, welcome to Hotel Taj AI IVRS. Please tell me how I can help you today."
+"Hello, welcome to Hotel Taj AI Assistance. Please tell me how I can help you today."
 
 Do not repeat this welcome message again in the same call.
 
@@ -97,7 +113,7 @@ You MUST NOT:
 
 # Response Format (Voice-Safe)
 
-"Our staff member {StaffName} is coming to your room with {ServiceItem}. She will arrive shortly. Your ticket number is {TicketNumber}."
+"Our staff member {StaffName} is coming to your room with {ServiceItem}. They will arrive shortly. Your ticket number is {TicketNumber}."
 
 # Escalation Rule (Mandatory)
 
@@ -149,7 +165,8 @@ End every service response with this exact sentence:
     "instructions": [
       "Assign staff based on room and floor.",
       "Generate a unique ticket number.",
-      "Trigger internal notifications."
+      "Call the createHotelServiceTicket function tool silently.",
+      "Trigger internal notifications (email) as part of ticket handling."
     ],
     "examples": [
       "Assign room service associate.",
@@ -199,25 +216,165 @@ function generateTicketRef(): string {
   return `TAJ-${Date.now().toString(36).toUpperCase()}`;
 }
 
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[\u2019']/g, "'")
+    .replace(/[^a-z0-9\s'-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeTextUnicode(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[\u2019']/g, "'")
+    .replace(/[^\p{L}\p{N}\s'-]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getActiveRoomFromCurrentStay() {
+  try {
+    const members = (currentStay as any)?.members ?? [];
+    const checkedIn = members.find(
+      (m: any) => m?.stay?.status === "CheckedIn" && m?.stay?.roomId
+    );
+    if (!checkedIn?.stay?.roomId) return null;
+    return (
+      hotelTaj.rooms.find((r) => r.roomId === checkedIn.stay.roomId) || null
+    );
+  } catch {
+    return null;
+  }
+}
+
 function detectService(text: string): string | null {
-  const t = text.toLowerCase();
-  if (t.includes("ice")) return "RS-ICE";
-  if (t.includes("water")) return "RS-WATER";
+  const tAscii = normalizeText(text);
+  const t = normalizeTextUnicode(text);
+
+  // 1) Use explicit routing hints first (fast + deterministic)
+  const hints = (hotelTaj as any)?.aiMlLayer?.knowledgeBase?.intentRoutingHints;
+  if (hints && typeof hints === "object") {
+    for (const [phrase, serviceId] of Object.entries(hints)) {
+      if (typeof phrase !== "string" || typeof serviceId !== "string") continue;
+      const p = normalizeText(phrase);
+      if (!p) continue;
+      // Match against both ascii-only and unicode-preserving normalized strings.
+      if (t.includes(p) || tAscii.includes(p)) return serviceId;
+    }
+  }
+
+  // 2) Fallback: match against catalog item names + tags
+  const catalog = hotelTaj.services?.roomServiceCatalog ?? [];
+  for (const item of catalog) {
+    const name = normalizeText(item?.name ?? "");
+    if (name && (t.includes(name) || tAscii.includes(name))) return item.itemId;
+  }
+
+  for (const item of catalog) {
+    const tags: string[] = Array.isArray((item as any)?.tags)
+      ? (item as any).tags
+      : [];
+    for (const tag of tags) {
+      const tt = normalizeText(tag);
+      if (tt && (t.includes(tt) || tAscii.includes(tt))) return item.itemId;
+    }
+  }
+
+  // 3) Small synonyms safety-net (common IVR phrases)
+  if (t.includes("towels") || t.includes("towel")) return "HK-TOWELS";
+  if (
+    t.includes("clean") ||
+    t.includes("cleaning") ||
+    t.includes("housekeeping")
+  )
+    return "HK-CLEANING";
+  if (t.includes("wifi") || t.includes("wi fi") || t.includes("internet"))
+    return "MS-WIFI";
+  if (
+    t.includes("air conditioner") ||
+    t.includes("air conditioning") ||
+    t === "ac"
+  )
+    return "MS-AC";
+
+  // 4) Multilingual safety-net (Hindi / Urdu common phrases)
+  // Cleaning / housekeeping
+  if (
+    t.includes("साफ") ||
+    t.includes("सफाई") ||
+    t.includes("रूम साफ") ||
+    t.includes("कमरा साफ") ||
+    t.includes("हाउसकीपिंग") ||
+    t.includes("کمرہ صاف") ||
+    t.includes("صفائی")
+  ) {
+    return "HK-CLEANING";
+  }
+
+  // Wi‑Fi / Internet not working
+  if (
+    t.includes("वाईफाई") ||
+    t.includes("वाइफाइ") ||
+    t.includes("wifi") ||
+    t.includes("इंटरनेट") ||
+    t.includes("नहीं चल") ||
+    t.includes("کا م نہیں") ||
+    t.includes("وائی فائی") ||
+    t.includes("انٹرنیٹ")
+  ) {
+    return "MS-WIFI";
+  }
+
   return null;
 }
 
-function assignStaff(floor: number) {
-  return (
-    hotelTaj.operations.staff.find((staff) =>
-      staff.assignedFloors.includes(floor)
-    ) || null
-  );
+function assignStaff(floor: number, serviceType: string) {
+  const byFloor = (staff: any) => staff?.assignedFloors?.includes?.(floor);
+  const role = (s: any) => String(s?.role ?? "").toLowerCase();
+  const type = String(serviceType ?? "").toLowerCase();
+
+  const candidates = hotelTaj.operations.staff.filter(byFloor);
+
+  const pick = (pred: (s: any) => boolean) => candidates.find(pred) || null;
+
+  if (type === "housekeeping") {
+    return (
+      pick((s) => role(s).includes("housekeeping")) || candidates[0] || null
+    );
+  }
+  if (type === "itsupport" || type === "maintenance") {
+    return (
+      pick(
+        (s) => role(s).includes("engineer") || role(s).includes("maintenance")
+      ) ||
+      pick((s) => role(s).includes("engineer")) ||
+      candidates[0] ||
+      null
+    );
+  }
+  if (type === "butlerservice" || type === "privatebutler") {
+    return pick((s) => role(s).includes("butler")) || candidates[0] || null;
+  }
+  if (type === "roomservice") {
+    return (
+      pick((s) => role(s).includes("room service")) || candidates[0] || null
+    );
+  }
+
+  return candidates[0] || null;
 }
 
 async function sendMail(payload: {
   to: string[];
+  cc?: string[];
   subject: string;
-  body: string;
+  username: string;
+  department: string;
+  ticketNo: string;
+  issueTitle: string;
+  issueDetails: string;
 }) {
   try {
     await fetch("/api/mailGateway", {
@@ -239,11 +396,17 @@ function getToolResponse(name: string, args: any) {
   if (!serviceId) {
     return {
       response:
-        "I'm sorry, I couldn't identify the requested service. If you need assistance, I can connect you to our hotel staff.",
+        "I'm sorry, I couldn't identify the requested service. If you need more assistance, I can connect you to our hotel staff.",
     };
   }
 
-  const room = hotelTaj.rooms[0];
+  const room =
+    getActiveRoomFromCurrentStay() ||
+    hotelTaj.rooms.find(
+      (r) =>
+        r.roomId === (hotelTaj as any)?.aiMlLayer?.knowledgeBase?.defaultRoom
+    ) ||
+    hotelTaj.rooms[0];
   if (!room) {
     return { response: "Room information is unavailable at the moment." };
   }
@@ -260,7 +423,7 @@ function getToolResponse(name: string, args: any) {
     return { response: "Requested service is currently unavailable." };
   }
 
-  const staff = assignStaff(room.floor);
+  const staff = assignStaff(room.floor, service.serviceType);
   if (!staff) {
     return {
       response:
@@ -271,14 +434,21 @@ function getToolResponse(name: string, args: any) {
   const ticketRef = generateTicketRef();
 
   sendMail({
-    to: [service.serviceEmail, floor.floorEmail],
+    to: [staff.email ?? service.serviceEmail],
+    cc: [service.serviceEmail, floor.floorEmail].filter(Boolean),
     subject: `Hotel Taj Service Ticket ${ticketRef}`,
-    body: `Service: ${service.name}, Room: ${room.roomId}`,
+    username: (currentStay as any)?.members?.[0]?.preferredName || "Guest",
+    department: service.serviceType || "Service",
+    ticketNo: ticketRef,
+    issueTitle: service.name,
+    issueDetails: `Service: ${service.name}. Room: ${
+      room.roomId
+    }. Guest request: ${(args?.serviceText ?? "").toString()}`,
   });
 
   return {
     ticketRef,
-    response: `Our staff member ${staff.name} is coming to your room with ${service.quantity} of ${service.name}. She will arrive shortly. Your ticket number is ${ticketRef}. If you need further assistance, I can connect you to our hotel staff.`,
+    response: `Our staff member ${staff.name} is coming to your room with ${service.quantity} of ${service.name}. They will arrive shortly. Your ticket number is ${ticketRef}. If you need more assistance, I can connect you to our hotel staff.`,
   };
 }
 

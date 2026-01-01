@@ -1,0 +1,79 @@
+{
+  "hotelId": "taj-001",
+  "generatedAt": "2026-01-01T00:00:00+05:30",
+  "timezone": "Asia/Kolkata",
+  "members": [
+    {
+      "guestId": "GST-0001",
+      "fullName": "Naveen Khanna",
+      "preferredName": "Naveen",
+      "languagePreference": "English",
+      "contact": {
+        "phone": "+91-9752079591",
+        "email": "rahul.singh@coraltele.com"
+      },
+      "stay": {
+        "status": "CheckedIn",
+        "roomId": "M101",
+        "floor": 1,
+        "roomType": "Deluxe Room",
+        "checkIn": "2026-01-01",
+        "checkOut": "2026-01-03",
+        "adults": 1,
+        "children": 0
+      },
+      "preferences": {
+        "housekeeping": {
+          "doNotDisturb": false,
+          "preferredCleaningWindow": "11:00-13:00"
+        },
+        "foodAndBeverage": {
+          "diet": "Vegetarian",
+          "favoriteBeverage": "Masala Tea",
+          "allergies": []
+        },
+        "room": {
+          "temperatureC": 22,
+          "pillowPreference": "Soft"
+        }
+      },
+      "notes": ["VIP: No", "Guest prefers concise voice confirmations"]
+    },
+    {
+      "guestId": "GST-0002",
+      "fullName": "Rajesh Tuli",
+      "preferredName": "Rajesh",
+      "languagePreference": "English",
+      "contact": {
+        "phone": "+91-9752079591",
+        "email": "rahul.singh@coraltele.com"
+      },
+      "stay": {
+        "status": "CheckedIn",
+        "roomId": "E201",
+        "floor": 2,
+        "roomType": "Executive Room",
+        "checkIn": "2026-01-01",
+        "checkOut": "2026-01-04",
+        "adults": 2,
+        "children": 0
+      },
+      "preferences": {
+        "housekeeping": {
+          "doNotDisturb": true,
+          "preferredCleaningWindow": "15:00-17:00"
+        },
+        "foodAndBeverage": {
+          "diet": "Non-Vegetarian",
+          "favoriteBeverage": "Coffee",
+          "allergies": ["Peanuts"]
+        },
+        "room": {
+          "temperatureC": 21,
+          "pillowPreference": "Firm"
+        }
+      },
+      "notes": ["Potential late check-out request", "Prefers WhatsApp updates"]
+    }
+  ]
+}

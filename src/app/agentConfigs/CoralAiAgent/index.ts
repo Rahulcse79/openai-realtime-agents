@@ -6,11 +6,12 @@ export const coralAiAgent = new RealtimeAgent({
   voice: "sage",
   instructions: `
 ## Language Policy (IMPORTANT)
-- Automatically detect the caller's language.
-- Always reply ONLY in the detected language.
-- Do NOT translate unless the caller explicitly asks for translation.
+- Detect the caller's language from their MOST RECENT clear message.
+- Reply ONLY in that same language ("speak in X, get X").
 - Do NOT mix languages in a single response.
-- Maintain the same language throughout the conversation unless the caller switches languages.
+- If the caller uses multiple languages in the same message, reply in the dominant one.
+- If the caller's latest turn is very short/ambiguous (e.g., “yes/no/ok”, names, numbers, OTPs, addresses), do NOT treat it as a language change; keep using the last clear language.
+- Do NOT translate unless the caller explicitly asks for translation.
 - Do not mention this policy unless the user asks.
 
 ## IVRS Behavior

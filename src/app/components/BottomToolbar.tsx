@@ -51,17 +51,18 @@ function BottomToolbar({
   }
 
   function getConnectionButtonClasses() {
-    const baseClasses = "text-white text-base p-2 w-36 rounded-md h-full";
+    const baseClasses = "ui-btn text-base h-11 w-36";
     const cursorClass = isConnecting ? "cursor-not-allowed" : "cursor-pointer";
 
     if (isConnected) {
       return `bg-red-600 hover:bg-red-700 ${cursorClass} ${baseClasses}`;
     }
-    return `bg-black hover:bg-gray-900 ${cursorClass} ${baseClasses}`;
+    return `ui-btn-primary ${cursorClass} ${baseClasses}`;
   }
 
   return (
-    <div className="p-4 flex flex-row items-center justify-center gap-x-8">
+    <div className="px-4 pb-4">
+      <div className="ui-panel app-soft flex flex-row flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-3 rounded-2xl">
       <button
         onClick={onToggleConnection}
         className={getConnectionButtonClasses()}
@@ -77,11 +78,11 @@ function BottomToolbar({
           checked={isPTTActive}
           onChange={(e) => setIsPTTActive(e.target.checked)}
           disabled={!isConnected}
-          className="w-4 h-4"
+          className="w-4 h-4 accent-sky-400 bg-white/90 border border-white/20 rounded focus:ring-2 focus:ring-sky-400/40"
         />
         <label
           htmlFor="push-to-talk"
-          className="flex items-center cursor-pointer"
+          className="flex items-center cursor-pointer text-sm font-medium text-white"
         >
           Push to talk
         </label>
@@ -92,11 +93,44 @@ function BottomToolbar({
           onTouchEnd={handleTalkButtonUp}
           disabled={!isPTTActive}
           className={
-            (isPTTUserSpeaking ? "bg-gray-300" : "bg-gray-200") +
-            " py-1 px-4 cursor-pointer rounded-md" +
-            (!isPTTActive ? " bg-gray-100 text-gray-400" : "")
+            (isPTTUserSpeaking
+              ? "ui-btn bg-emerald-500/90 hover:bg-emerald-500 text-white border border-emerald-300/30"
+              : "ui-btn bg-red-500/90 hover:bg-red-500 text-white border border-red-300/30") +
+            " h-10 px-4" +
+            (!isPTTActive ? " opacity-50 cursor-not-allowed" : "")
           }
         >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            className="shrink-0"
+          >
+            <path
+              d="M12 14c1.6569 0 3-1.3431 3-3V6c0-1.65685-1.3431-3-3-3s-3 1.34315-3 3v5c0 1.6569 1.3431 3 3 3Z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M19 11v0.5c0 3.866-3.134 7-7 7s-7-3.134-7-7V11"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M12 18.5V21"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
           Talk
         </button>
       </div>
@@ -108,11 +142,11 @@ function BottomToolbar({
           checked={isAudioPlaybackEnabled}
           onChange={(e) => setIsAudioPlaybackEnabled(e.target.checked)}
           disabled={!isConnected}
-          className="w-4 h-4"
+          className="w-4 h-4 accent-sky-400 bg-white/90 border border-white/20 rounded focus:ring-2 focus:ring-sky-400/40"
         />
         <label
           htmlFor="audio-playback"
-          className="flex items-center cursor-pointer"
+          className="flex items-center cursor-pointer text-sm font-medium text-white"
         >
           Audio playback
         </label>
@@ -124,9 +158,12 @@ function BottomToolbar({
           type="checkbox"
           checked={isEventsPaneExpanded}
           onChange={(e) => setIsEventsPaneExpanded(e.target.checked)}
-          className="w-4 h-4"
+          className="w-4 h-4 accent-sky-400 bg-white/90 border border-white/20 rounded focus:ring-2 focus:ring-sky-400/40"
         />
-        <label htmlFor="logs" className="flex items-center cursor-pointer">
+        <label
+          htmlFor="logs"
+          className="flex items-center cursor-pointer text-sm font-medium text-white"
+        >
           Logs
         </label>
       </div>
@@ -137,25 +174,29 @@ function BottomToolbar({
           type="checkbox"
           checked={isTasksPaneOpen}
           onChange={(e) => setIsTasksPaneOpen(e.target.checked)}
-          className="w-4 h-4"
+          className="w-4 h-4 accent-sky-400 bg-white/90 border border-white/20 rounded focus:ring-2 focus:ring-sky-400/40"
         />
-        <label htmlFor="tasks" className="flex items-center cursor-pointer">
+        <label
+          htmlFor="tasks"
+          className="flex items-center cursor-pointer text-sm font-medium text-white"
+        >
           Tasks
         </label>
       </div>
 
       <div className="flex flex-row items-center gap-2">
-        <div>Codec:</div>
+        <div className="text-sm font-medium text-white">Codec:</div>
         <select
           id="codec-select"
           value={codec}
           onChange={handleCodecChange}
-          className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none cursor-pointer"
+          className="ui-input !w-auto !py-2 !px-3 text-sm cursor-pointer text-white"
         >
           <option value="opus">Opus (48 kHz)</option>
           <option value="pcmu">PCMU (8 kHz)</option>
           <option value="pcma">PCMA (8 kHz)</option>
         </select>
+      </div>
       </div>
     </div>
   );

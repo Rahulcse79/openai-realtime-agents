@@ -406,10 +406,10 @@ function App() {
   const agentSetKey = searchParams.get("agentConfig") || "default";
 
   return (
-    <div className="text-base flex flex-col h-screen bg-gray-100 text-gray-800 relative">
-      <div className="p-5 text-lg font-semibold flex justify-between items-center">
+  <div className="text-base flex flex-col h-screen text-white relative">
+      <div className="px-5 py-4 text-lg font-semibold flex justify-between items-center ui-panel ui-panel-header mx-3 mt-3 rounded-2xl">
         <div
-          className="flex items-center cursor-pointer"
+          className="flex items-center cursor-pointer select-none hover:opacity-90 transition-opacity"
           onClick={() => window.location.reload()}
         >
           <div>
@@ -422,19 +422,21 @@ function App() {
             />
           </div>
           <div>
-            CORAL AI IVRS | Intelligent Voice Response System{" "}
-            <span className="text-gray-500"></span>
+            <div className="leading-tight">CORAL AI IVRS</div>
+            <div className="text-sm font-medium text-white/80">
+              Intelligent Voice Response System
+            </div>
           </div>
         </div>
         <div className="flex items-center">
-          <label className="flex items-center text-base gap-1 mr-2 font-medium">
+          <label className="flex items-center text-base gap-1 mr-2 font-medium text-white">
             Scenario
           </label>
           <div className="relative inline-block">
             <select
               value={agentSetKey}
               onChange={handleAgentChange}
-              className="appearance-none border border-gray-300 rounded-lg text-base px-2 py-1 pr-8 cursor-pointer font-normal focus:outline-none"
+              className="appearance-none border border-white/20 rounded-xl text-base px-3 py-2 pr-9 cursor-pointer font-normal focus:outline-none bg-black/30 hover:bg-black/40 transition-colors text-white"
             >
               {Object.keys(allAgentSets).map((agentKey) => (
                 <option key={agentKey} value={agentKey}>
@@ -442,7 +444,7 @@ function App() {
                 </option>
               ))}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-600">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-white/80">
               <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path
                   fillRule="evenodd"
@@ -455,14 +457,14 @@ function App() {
 
           {agentSetKey && (
             <div className="flex items-center ml-6">
-              <label className="flex items-center text-base gap-1 mr-2 font-medium">
+              <label className="flex items-center text-base gap-1 mr-2 font-medium text-white">
                 Agent
               </label>
               <div className="relative inline-block">
                 <select
                   value={selectedAgentName}
                   onChange={handleSelectedAgentChange}
-                  className="appearance-none border border-gray-300 rounded-lg text-base px-2 py-1 pr-8 cursor-pointer font-normal focus:outline-none"
+                  className="appearance-none border border-white/20 rounded-xl text-base px-3 py-2 pr-9 cursor-pointer font-normal focus:outline-none bg-black/30 hover:bg-black/40 transition-colors text-white"
                 >
                   {selectedAgentConfigSet?.map((agent) => (
                     <option key={agent.name} value={agent.name}>
@@ -470,7 +472,7 @@ function App() {
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-600">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-white/80">
                   <svg
                     className="h-4 w-4"
                     viewBox="0 0 20 20"
@@ -489,7 +491,7 @@ function App() {
         </div>
       </div>
 
-      <div className="flex flex-1 gap-2 px-2 overflow-hidden relative">
+      <div className="flex flex-1 gap-3 px-3 pb-3 pt-3 overflow-hidden relative">
         <Transcript
           userText={userText}
           setUserText={setUserText}

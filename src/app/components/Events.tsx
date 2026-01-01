@@ -35,18 +35,20 @@ function Events({ isExpanded }: EventsProps) {
     <div
       className={
         (isExpanded
-          ? "w-full flex-1 overflow-y-auto bg-white rounded-lg border border-gray-200"
+          ? "w-full flex-1 rounded-2xl ui-panel overflow-hidden"
           : "w-0 overflow-hidden opacity-0") +
         " transition-all duration-200 ease-in-out flex flex-col"
       }
-      ref={eventLogsContainerRef}
     >
       {isExpanded && (
-        <div className="flex flex-col min-h-0">
-          <div className="flex items-center justify-between px-3 py-2 text-base border-b border-gray-100 sticky top-0 bg-white/90 backdrop-blur">
-            <span className="font-semibold">Logs</span>
+        <div className="flex flex-col min-h-0 h-full">
+          <div className="flex items-center justify-between px-4 py-3 text-base sticky top-0 ui-panel-header">
+            <span className="font-semibold text-white">Logs</span>
           </div>
-          <div className="min-h-0">
+          <div
+            className="min-h-0 flex-1 overflow-y-auto"
+            ref={eventLogsContainerRef}
+          >
             {loggedEvents.map((log, idx) => {
               const arrowInfo = getDirectionArrow(log.direction);
               const isError =
@@ -54,10 +56,13 @@ function Events({ isExpanded }: EventsProps) {
                 log.eventData?.response?.status_details?.error != null;
 
               return (
-                <div key={`${log.id}-${idx}`} className="py-2 px-3">
+                <div
+                  key={`${log.id}-${idx}`}
+                  className="py-2 px-4 border-b border-slate-100/80"
+                >
                   <div
                     onClick={() => toggleExpand(log.id)}
-                    className="flex items-center justify-between cursor-pointer"
+                    className="flex items-center justify-between cursor-pointer rounded-xl px-2 py-2 -mx-2"
                   >
                     <div className="flex items-center flex-1">
                       <span
@@ -69,20 +74,20 @@ function Events({ isExpanded }: EventsProps) {
                       <span
                         className={
                           "flex-1 text-sm " +
-                          (isError ? "text-red-600" : "text-gray-800")
+                          (isError ? "text-red-300" : "text-white")
                         }
                       >
                         {log.eventName}
                       </span>
                     </div>
-                    <div className="text-gray-500 ml-1 text-xs whitespace-nowrap">
+                    <div className="text-white/70 ml-1 text-xs whitespace-nowrap">
                       {log.timestamp}
                     </div>
                   </div>
 
                   {log.expanded && log.eventData && (
-                    <div className="text-gray-800 text-left">
-                      <pre className="whitespace-pre-wrap break-words text-xs mb-2 mt-2">
+                    <div className="text-white text-left">
+                      <pre className="whitespace-pre-wrap break-words text-xs mb-2 mt-2 rounded-xl bg-black/20 border border-white/10 p-3 text-white/90">
                         {JSON.stringify(log.eventData, null, 2)}
                       </pre>
                     </div>

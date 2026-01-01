@@ -74,24 +74,24 @@ export default function TaskApiDemo() {
   ];
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="flex items-start justify-between gap-3 border-b border-gray-100 p-4">
+    <div className="rounded-2xl border border-white/10 bg-black/20 backdrop-blur shadow-sm">
+      <div className="flex items-start justify-between gap-3 border-b border-white/10 p-4">
         <div>
-          <div className="text-sm font-semibold text-gray-900">Tasks</div>
-          <div className="text-xs text-gray-500">
+          <div className="text-sm font-semibold text-white">Tasks</div>
+          <div className="text-xs text-white/70">
             Create, view, and manage tasks
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-xs font-medium text-white hover:bg-black/30 disabled:opacity-50"
             onClick={() => setIsCreateOpen((s) => !s)}
             disabled={loading}
           >
             {isCreateOpen ? "Close" : "New"}
           </button>
           <button
-            className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-black disabled:opacity-50"
+            className="rounded-xl bg-sky-500/90 px-3 py-2 text-xs font-medium text-white hover:bg-sky-500 disabled:opacity-50"
             onClick={() => refresh()}
             disabled={loading}
           >
@@ -102,12 +102,12 @@ export default function TaskApiDemo() {
 
       <div className="p-4">
         <div className="mb-3 flex flex-col gap-2">
-          <label className="text-xs font-medium text-gray-600">
+          <label className="text-xs font-medium text-white/80">
             Status filter
           </label>
           <div className="flex items-center gap-2">
             <select
-              className="w-full rounded-md border border-gray-200 bg-white px-2 py-2 text-sm"
+              className="w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -119,30 +119,30 @@ export default function TaskApiDemo() {
               ))}
             </select>
             <button
-              className="shrink-0 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="shrink-0 rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-xs font-medium text-white hover:bg-black/30 disabled:opacity-50"
               onClick={() => refresh()}
               disabled={loading}
             >
               Apply
             </button>
           </div>
-          <div className="text-[11px] text-gray-500">
+          <div className="text-[11px] text-white/60">
             Uses <code>/services/api/v2/task/listWithStatus/{"{status}"}</code>.
           </div>
         </div>
 
         {isCreateOpen ? (
-          <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
-            <div className="mb-2 text-sm font-semibold text-gray-900">
+          <div className="mb-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div className="mb-2 text-sm font-semibold text-white">
               Create task
             </div>
             <div className="grid grid-cols-1 gap-2">
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-gray-600">
+                <span className="text-xs font-medium text-white/80">
                   Task name
                 </span>
                 <input
-                  className="rounded-md border border-gray-200 bg-white px-2 py-2 text-sm"
+                  className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-white/60"
                   value={form.tasksName ?? ""}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, tasksName: e.target.value }))
@@ -150,11 +150,11 @@ export default function TaskApiDemo() {
                 />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-gray-600">
+                <span className="text-xs font-medium text-white/80">
                   Priority
                 </span>
                 <input
-                  className="rounded-md border border-gray-200 bg-white px-2 py-2 text-sm"
+                  className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-white/60"
                   value={form.taskPriority ?? ""}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, taskPriority: e.target.value }))
@@ -162,11 +162,11 @@ export default function TaskApiDemo() {
                 />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-gray-600">
+                <span className="text-xs font-medium text-white/80">
                   Status
                 </span>
                 <select
-                  className="rounded-md border border-gray-200 bg-white px-2 py-2 text-sm"
+                  className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
                   value={form.currentStats ?? ""}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, currentStats: e.target.value }))
@@ -181,11 +181,11 @@ export default function TaskApiDemo() {
                 </select>
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-gray-600">
+                <span className="text-xs font-medium text-white/80">
                   Description
                 </span>
                 <input
-                  className="rounded-md border border-gray-200 bg-white px-2 py-2 text-sm"
+                  className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-white/60"
                   value={form.taskDescription ?? ""}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, taskDescription: e.target.value }))
@@ -194,14 +194,14 @@ export default function TaskApiDemo() {
               </label>
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
-                  className="rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-xs font-medium text-white hover:bg-black/30 disabled:opacity-50"
                   onClick={() => setIsCreateOpen(false)}
                   disabled={loading}
                 >
                   Cancel
                 </button>
                 <button
-                  className="rounded-md bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="rounded-xl bg-sky-500/90 px-3 py-2 text-xs font-medium text-white hover:bg-sky-500 disabled:opacity-50"
                   disabled={!canSubmit || loading}
                   onClick={onCreate}
                 >
@@ -218,10 +218,10 @@ export default function TaskApiDemo() {
           </div>
         ) : null}
 
-        <div className="rounded-lg border border-gray-200 overflow-hidden">
+        <div className="rounded-2xl border border-white/10 overflow-hidden">
           <div className="max-h-80 overflow-auto">
             <table className="w-full border-collapse text-left text-sm">
-              <thead className="sticky top-0 bg-gray-50 text-xs text-gray-600">
+              <thead className="sticky top-0 bg-black/30 backdrop-blur text-xs text-white/80">
                 <tr>
                   <th className="px-3 py-2 font-semibold">Task</th>
                   <th className="px-3 py-2 font-semibold">Priority</th>
@@ -229,10 +229,10 @@ export default function TaskApiDemo() {
                   <th className="px-3 py-2 font-semibold">Actions</th>
                 </tr>
               </thead>
-              <tbody className="text-gray-800">
+              <tbody className="text-white">
                 {loading && (!tasks || tasks.length === 0) ? (
                   <tr>
-                    <td className="px-3 py-3 text-xs text-gray-500" colSpan={4}>
+                    <td className="px-3 py-3 text-xs text-white/70" colSpan={4}>
                       Loading…
                     </td>
                   </tr>
@@ -240,7 +240,7 @@ export default function TaskApiDemo() {
 
                 {!loading && (!tasks || tasks.length === 0) ? (
                   <tr>
-                    <td className="px-3 py-3 text-xs text-gray-500" colSpan={4}>
+                    <td className="px-3 py-3 text-xs text-white/70" colSpan={4}>
                       No tasks found.
                     </td>
                   </tr>
@@ -249,24 +249,24 @@ export default function TaskApiDemo() {
                 {tasks?.map((t) => (
                   <tr
                     key={String(t.id ?? t.tasksName)}
-                    className="border-t border-gray-100"
+                    className="border-t border-white/10 hover:bg-white/5 transition-colors"
                   >
                     <td className="px-3 py-2">
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-white">
                         {t.tasksName ?? "-"}
                       </div>
                       {t.taskDescription ? (
-                        <div className="text-xs text-gray-500 line-clamp-2">
+                        <div className="text-xs text-white/70 line-clamp-2">
                           {t.taskDescription}
                         </div>
                       ) : null}
                     </td>
-                    <td className="px-3 py-2 text-xs text-gray-700">
+                    <td className="px-3 py-2 text-xs text-white/80">
                       {t.taskPriority ?? "-"}
                     </td>
                     <td className="px-3 py-2">
                       <select
-                        className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs"
+                        className="rounded-xl border border-white/15 bg-black/20 px-2 py-1 text-xs text-white"
                         value={t.currentStats ?? ""}
                         onChange={(e) => quickUpdateStatus(t, e.target.value)}
                         disabled={loading || !t.id}
@@ -281,7 +281,7 @@ export default function TaskApiDemo() {
                     </td>
                     <td className="px-3 py-2">
                       <button
-                        className="rounded-md border border-red-200 bg-white px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                        className="rounded-xl border border-red-400/30 bg-red-500/10 px-2 py-1 text-xs font-medium text-red-200 hover:bg-red-500/15 disabled:opacity-50"
                         onClick={() => onDelete(t)}
                         disabled={loading || !t.id}
                       >
