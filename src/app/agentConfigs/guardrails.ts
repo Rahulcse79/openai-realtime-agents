@@ -150,12 +150,8 @@ function isShortOrAmbiguousUserTurn(text: string): boolean {
   const t = (text ?? "").trim();
   if (!t) return true;
   if (t.length <= 2) return true;
-  // If it's a single word (common in voice IVR like "no"/"yes"/"नहीं"/"نہیں"),
-  // treat it as ambiguous and do NOT consider it a language switch.
-  // This intentionally captures non-Latin scripts too.
   if (!/\s/.test(t) && t.length <= 6) return true;
   if (/^[\d\s+\-()#.,]*$/.test(t)) return true;
-  // A small set of common short confirmations across languages.
   if (/^(ok|okay|yes|no|ya|yep|nope|hm|hmm|haan|han|ji|thik|theek|nahi|nahin|nhi|n|haanji|theek hai)\b/i.test(t) && t.length <= 12) {
     return true;
   }
