@@ -55,18 +55,26 @@ export type TaskModel = TaskCreateModel & {
   taskClosedBy?: string;
 };
 
-function getBackendBaseUrl(): string {
-  const base = process.env.TASK_BACKEND_BASE_URL;
+async function getBackendBaseUrl(): Promise<string> {
+  await loadServerEnvAsync();
+  const base =
+    process.env.TASK_BACKEND_BASE_URL ??
+    process.env.NEXT_PUBLIC_TASK_BACKEND_BASE_URL;
   if (!base) {
-    throw new Error("TASK_BACKEND_BASE_URL not defined");
+    throw new Error(
+      "TASK_BACKEND_BASE_URL not defined (set TASK_BACKEND_BASE_URL or NEXT_PUBLIC_TASK_BACKEND_BASE_URL in .env)"
+    );
   }
   return base;
 }
 
 function getAuthHeader(): HeadersInit {
-  const token = process.env.TASK_AUTH_TOKEN;
+  const token =
+    process.env.TASK_AUTH_TOKEN ?? process.env.NEXT_PUBLIC_TASK_AUTH_TOKEN;
   if (!token) {
-    throw new Error("TASK_AUTH_TOKEN not defined");
+    throw new Error(
+      "TASK_AUTH_TOKEN not defined (set TASK_AUTH_TOKEN or NEXT_PUBLIC_TASK_AUTH_TOKEN in .env)"
+    );
   }
   return {
     Authorization: token,
@@ -113,37 +121,37 @@ async function apiFetch<T>(
 export const taskApi = {
   listAll: async () =>
     apiFetch<RequestResponse<TaskModel[]>>(
-      `${getBackendBaseUrl()}/task/listAll`,
+      `${await getBackendBaseUrl()}/task/listAll`,
       { method: "POST" }
     ),
 
   list: async (search: SearchRequest) =>
-    apiFetch<RequestResponse<any>>(`${getBackendBaseUrl()}/task/list`, {
+    apiFetch<RequestResponse<any>>(`${await getBackendBaseUrl()}/task/list`, {
       method: "POST",
       json: search,
     }),
 
   create: async (data: TaskCreateModel) =>
-    apiFetch<RequestResponse>(`${getBackendBaseUrl()}/task/create`, {
+    apiFetch<RequestResponse>(`${await getBackendBaseUrl()}/task/create`, {
       method: "POST",
       json: data,
     }),
 
   update: async (data: TaskCreateModel) =>
-    apiFetch<RequestResponse>(`${getBackendBaseUrl()}/task/update`, {
+    apiFetch<RequestResponse>(`${await getBackendBaseUrl()}/task/update`, {
       method: "POST",
       json: data,
     }),
 
   delete: async (ids: number[]) =>
-    apiFetch<RequestResponse>(`${getBackendBaseUrl()}/task/delete`, {
+    apiFetch<RequestResponse>(`${await getBackendBaseUrl()}/task/delete`, {
       method: "POST",
       json: { intId: ids } satisfies InputIdModel,
     }),
 
   listWithStatus: async (status: string, search: SearchRequest) =>
     apiFetch<RequestResponse<any>>(
-      `${getBackendBaseUrl()}/task/listWithStatus/${encodeURIComponent(
+      `${await getBackendBaseUrl()}/task/listWithStatus/${encodeURIComponent(
         status
       )}`,
       { method: "POST", json: search }
@@ -151,13 +159,13 @@ export const taskApi = {
 
   getById: async (id: number) =>
     apiFetch<RequestResponse<TaskModel[]>>(
-      `${getBackendBaseUrl()}/task/listAll/${id}`,
+      `${await getBackendBaseUrl()}/task/listAll/${id}`,
       { method: "POST" }
     ),
 
   userGroupOwner: async (username: string) =>
     apiFetch<RequestResponse<{ reviewer?: string }>>(
-      `${getBackendBaseUrl()}/task/userGroup/${encodeURIComponent(username)}`,
+      `${await getBackendBaseUrl()}/task/userGroup/${encodeURIComponent(username)}`,
       { method: "POST" }
     ),
 
@@ -167,7 +175,7 @@ export const taskApi = {
     const headers = new Headers(getAuthHeader());
     headers.set("Content-Type", "application/json");
 
-    const res = await fetch(`${getBackendBaseUrl()}/task/downloadCSV`, {
+    const res = await fetch(`${await getBackendBaseUrl()}/task/downloadCSV`, {
       method: "POST",
       headers,
       body: JSON.stringify(search),
@@ -188,7 +196,7 @@ export const taskApi = {
 
     const headers = new Headers(getAuthHeader());
 
-    const res = await fetch(`${getBackendBaseUrl()}/task/uploadFile`, {
+    const res = await fetch(`${await getBackendBaseUrl()}/task/uploadFile`, {
       method: "POST",
       headers,
       body: form,
@@ -201,7 +209,8 @@ export const taskApi = {
     return res.json();
   },
 
-  playUrl: (id: number) => `${getBackendBaseUrl()}/task/play/${id}`,
+  playUrl: async (id: number) => `${await getBackendBaseUrl()}/task/play/${id}`,
 
-  downloadUrl: (id: number) => `${getBackendBaseUrl()}/task/download/${id}`,
+  downloadUrl: async (id: number) =>
+    `${await getBackendBaseUrl()}/task/download/${id}`,
 } as const;

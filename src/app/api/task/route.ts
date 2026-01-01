@@ -3,9 +3,13 @@ import { loadServerEnvAsync } from "@/app/lib/envSetup";
 import { setCorsHeaders } from "@/app/api/utils/cors";
 
 function getBackendOrigin() {
-  const origin = process.env.TASK_BACKEND_BASE_URL;
+  const origin =
+    process.env.TASK_BACKEND_BASE_URL ??
+    process.env.NEXT_PUBLIC_TASK_BACKEND_BASE_URL;
   if (!origin) {
-    throw new Error("TASK_BACKEND_BASE_URL is not defined");
+    throw new Error(
+      "TASK_BACKEND_BASE_URL is not defined (set TASK_BACKEND_BASE_URL or NEXT_PUBLIC_TASK_BACKEND_BASE_URL in .env)"
+    );
   }
   return origin;
 }
@@ -16,9 +20,12 @@ function getAuthHeader(req: NextRequest): string {
     return incoming;
   }
 
-  const token = process.env.TASK_AUTH_TOKEN;
+  const token =
+    process.env.TASK_AUTH_TOKEN ?? process.env.NEXT_PUBLIC_TASK_AUTH_TOKEN;
   if (!token) {
-    throw new Error("TASK_AUTH_TOKEN is not defined");
+    throw new Error(
+      "TASK_AUTH_TOKEN is not defined (set TASK_AUTH_TOKEN or NEXT_PUBLIC_TASK_AUTH_TOKEN in .env)"
+    );
   }
 
   return token;
