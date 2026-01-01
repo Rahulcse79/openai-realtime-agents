@@ -29,7 +29,7 @@ export async function runGuardrailClassifier(
     },
   ];
 
-  const response = await fetch("http://localhost:3000/api/responses", {
+    const response = await fetch("/api/responses", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
