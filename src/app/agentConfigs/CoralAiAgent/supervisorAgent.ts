@@ -260,6 +260,46 @@ async function fetchResponsesMessage(body: any) {
   return completion;
 }
 
+async function translateToEnglish(text: unknown): Promise<string> {
+  const input = String(text ?? "").trim();
+  if (!input) return "";
+
+  // Keep prompt short and deterministic—only translate when needed; otherwise return the same.
+  const res = await fetchResponsesMessage({
+    model: "gpt-4.1-mini",
+    input: [
+      {
+        type: "message",
+        role: "system",
+        content:
+          "You translate user-provided text to English for internal ticketing. " +
+          "Return ONLY the translated English text, with no quotes, no extra commentary. " +
+          "If the input is already English, return it unchanged.",
+      },
+      {
+        type: "message",
+        role: "user",
+        content: input,
+      },
+    ],
+  });
+
+  const outputItems: any[] = res?.output ?? [];
+  const assistantMessages = outputItems.filter((item) => item.type === "message");
+  const finalText = assistantMessages
+    .map((msg: any) => {
+      const contentArr = msg.content ?? [];
+      return contentArr
+        .filter((c: any) => c.type === "output_text")
+        .map((c: any) => c.text)
+        .join("");
+    })
+    .join("\n")
+    .trim();
+
+  return finalText || input;
+}
+
 async function createTaskTicket(args: any, ticket: any) {
   try {
     const taskPayload = {
@@ -312,6 +352,8 @@ async function sendTicketMail(args: any, ticket: any) {
   const finalCc = toList.length > 0 ? ccList : [];
 
   if (finalTo.length === 0) return;
+  const issueTitleEn = await translateToEnglish(args?.subject);
+  const issueDetailsEn = await translateToEnglish(args?.description);
 
   try {
     await fetch("/api/mailGateway", {
@@ -325,8 +367,8 @@ async function sendTicketMail(args: any, ticket: any) {
         username: ticket.requester.name,
         department: ticket.requester.department,
         ticketNo: ticket.ticketRef,
-        issueTitle: args.subject,
-        issueDetails: args.description,
+        issueTitle: issueTitleEn,
+        issueDetails: issueDetailsEn,
       }),
     });
 
