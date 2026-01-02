@@ -7,6 +7,7 @@ import Transcript from "./components/Transcript";
 import Events from "./components/Events";
 import BottomToolbar from "./components/BottomToolbar";
 import TaskApiDemo from "./components/TicketGenerator";
+import DisplayHologram from "./components/DisplayHologram";
 import { SessionStatus } from "@/app/types";
 import type { RealtimeAgent } from "@openai/agents/realtime";
 import { useTranscript } from "@/app/contexts/TranscriptContext";
@@ -83,6 +84,8 @@ function App() {
     useState<SessionStatus>("DISCONNECTED");
 
   const [isEventsPaneExpanded, setIsEventsPaneExpanded] =
+    useState<boolean>(true);
+  const [isDisplayPaneExpanded, setIsDisplayPaneExpanded] =
     useState<boolean>(true);
   const [isTasksPaneOpen, setIsTasksPaneOpen] = useState<boolean>(false);
   const [userText, setUserText] = useState<string>("");
@@ -330,6 +333,10 @@ function App() {
     if (storedLogsExpanded) {
       setIsEventsPaneExpanded(storedLogsExpanded === "true");
     }
+    const storedDisplayExpanded = localStorage.getItem("displayExpanded");
+    if (storedDisplayExpanded) {
+      setIsDisplayPaneExpanded(storedDisplayExpanded === "true");
+    }
     const storedTasksOpen = localStorage.getItem("tasksOpen");
     if (storedTasksOpen) {
       setIsTasksPaneOpen(storedTasksOpen === "true");
@@ -349,6 +356,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem("logsExpanded", isEventsPaneExpanded.toString());
   }, [isEventsPaneExpanded]);
+
+  useEffect(() => {
+    localStorage.setItem("displayExpanded", isDisplayPaneExpanded.toString());
+  }, [isDisplayPaneExpanded]);
 
   useEffect(() => {
     localStorage.setItem("tasksOpen", isTasksPaneOpen.toString());
@@ -411,7 +422,7 @@ function App() {
   const agentSetKey = searchParams.get("agentConfig") || "default";
 
   return (
-  <div className="text-base flex flex-col h-screen text-white relative">
+    <div className="text-base flex flex-col h-screen text-white relative">
       <div className="px-5 py-4 text-lg font-semibold flex justify-between items-center ui-panel ui-panel-header mx-3 mt-3 rounded-2xl">
         <div
           className="flex items-center cursor-pointer select-none hover:opacity-90 transition-opacity"
@@ -513,6 +524,15 @@ function App() {
             </div>
           ) : null}
         </div>
+
+        <div className="flex w-[420px] shrink-0 flex-col gap-2 overflow-hidden">
+          <Events isExpanded={isDisplayPaneExpanded} />
+          {(isTasksPaneOpen && !isDisplayPaneExpanded) || (isEventsPaneExpanded && !isDisplayPaneExpanded) ? (
+            <div className="overflow-auto px-2 pb-2">
+              <DisplayHologram />
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <BottomToolbar
@@ -526,6 +546,11 @@ function App() {
         isEventsPaneExpanded={isEventsPaneExpanded}
         setIsEventsPaneExpanded={(val) => {
           setIsEventsPaneExpanded(val);
+          if (val) setIsTasksPaneOpen(false);
+        }}
+        isDisplayPaneExpanded={isDisplayPaneExpanded}
+        setIsDisplayPaneExpanded={(val) => {
+          setIsDisplayPaneExpanded(val);
           if (val) setIsTasksPaneOpen(false);
         }}
         isTasksPaneOpen={isTasksPaneOpen}
