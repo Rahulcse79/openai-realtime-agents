@@ -422,7 +422,7 @@ function App() {
             />
           </div>
           <div>
-            <div className="leading-tight">CORAL AI IVRS</div>
+            <div className="leading-tight">CORAL AI Assistant</div>
             <div className="text-sm font-medium text-white/80">
               Intelligent Voice Response System
             </div>
