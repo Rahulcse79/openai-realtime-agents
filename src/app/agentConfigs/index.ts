@@ -1,10 +1,12 @@
 import { CoralAiAgent } from "./CoralAiAgent";
-import { HotelManagementAiAgent } from "./HotelManagmentAiAgent";
+import { HotelAiAgent } from "./HotelAiAgent";
+import { HospitalAiAgent } from "./HospitalAiAgent";
 import type { RealtimeAgent } from "@openai/agents/realtime";
 
 export const allAgentSets: Record<string, RealtimeAgent[]> = {
   CoralAiScenario: CoralAiAgent,
-  HotelManagementAiScenario: HotelManagementAiAgent,
+  HotelAiScenario: HotelAiAgent,
+  HospitalAiScenario: HospitalAiAgent,
 };
 
 export const defaultAgentSetKey = "CoralAiScenario";

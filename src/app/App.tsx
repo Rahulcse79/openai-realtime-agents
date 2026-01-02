@@ -19,21 +19,26 @@ import {
 import { allAgentSets, defaultAgentSetKey } from "@/app/agentConfigs";
 import { CoralAiAgent } from "@/app/agentConfigs/CoralAiAgent";
 import { CoralAiAgentCompanyName } from "@/app/agentConfigs/CoralAiAgent";
-import { HotelManagementAiAgent } from "@/app/agentConfigs/HotelManagmentAiAgent";
-import { HotelManagementAiAgentCompanyName } from "@/app/agentConfigs/HotelManagmentAiAgent";
+import { HotelAiAgent } from "@/app/agentConfigs/HotelAiAgent";
+import { HotelAiAgentCompanyName } from "@/app/agentConfigs/HotelAiAgent";
+import { HospitalAiAgent } from "./agentConfigs/HospitalAiAgent";
+import { HospitalAiAgentCompanyName } from "./agentConfigs/HospitalAiAgent";
 import useAudioDownload from "./hooks/useAudioDownload";
 import { useHandleSessionHistory } from "./hooks/useHandleSessionHistory";
 
 const sdkScenarioMap: Record<string, RealtimeAgent[]> = {
   CoralAiScenario: CoralAiAgent,
-  HotelManagementAiScenario: HotelManagementAiAgent,
+  HotelAiScenario: HotelAiAgent,
+  HospitalAiScenario: HospitalAiAgent,
 };
 
 function getCompanyName(agentSetKey: string) {
-  if (agentSetKey === "HotelManagementAiScenario") {
-    return HotelManagementAiAgentCompanyName;
+  if (agentSetKey === "HotelAiScenario") {
+    return HotelAiAgentCompanyName;
   } else if (agentSetKey === "CoralAiScenario") {
     return CoralAiAgentCompanyName;
+  } else if (agentSetKey === "HospitalAiScenario") {
+    return HospitalAiAgentCompanyName;
   }
 
   return CoralAiAgentCompanyName;

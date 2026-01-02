@@ -1,7 +1,7 @@
 import { RealtimeAgent } from "@openai/agents/realtime";
 import { getNextResponseFromHotelManagementAiAgent } from "./supervisorAgent";
 
-export const hotelManagementAiAgent = new RealtimeAgent({
+export const hotelAiAgent = new RealtimeAgent({
   name: "TajHotelAiAssistant",
   voice: "sage",
 
@@ -148,7 +148,7 @@ At the end of the response OR if dissatisfaction is detected, say exactly:
   tools: [getNextResponseFromHotelManagementAiAgent],
 });
 
-export const HotelManagementAiAgent = [hotelManagementAiAgent];
-export const HotelManagementAiAgentCompanyName = "Taj Hotel";
+export const HotelAiAgent = [hotelAiAgent];
+export const HotelAiAgentCompanyName = "Taj Hotel";
 
-export default hotelManagementAiAgent;
+export default hotelAiAgent;
